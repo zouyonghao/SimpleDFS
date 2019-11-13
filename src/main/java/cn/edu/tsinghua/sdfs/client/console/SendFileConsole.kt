@@ -1,20 +1,33 @@
 package cn.edu.tsinghua.sdfs.client.console
 
 import cn.edu.tsinghua.sdfs.codec.Codec
-import cn.edu.tsinghua.sdfs.protocol.FilePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import io.netty.channel.Channel
-import java.io.File
-import java.util.*
+import java.nio.file.Files
+import java.nio.file.Paths
 
 object SendFileConsole {
 
-    fun exec(channel: Channel) {
-        val sc = Scanner(System.`in`)
-        println("please input the file path: ")
-        val path = sc.nextLine()
-        val file = File(path)
-        val filePacket = FilePacket(file)
-        channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), filePacket))
+    fun exec(channel: Channel, args: Array<String>) {
+        when (args[0]) {
+            "ls" -> {
+                println("ls command executing...")
+                channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), LsPacket(args[1])))
+                channel.close()
+            }
+            "copyFromLocal" -> {
+                val localFile = args[1]
+                val remoteFile = args[2]
+                if (Files.notExists(Paths.get(localFile))) {
+                    println("local file not exist.")
+                    channel.close()
+                    return
+                }
+                val createRequest = CreateRequest(localFile, remoteFile, Files.size(Paths.get(localFile)))
+                channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), createRequest))
+            }
+        }
     }
 
 }

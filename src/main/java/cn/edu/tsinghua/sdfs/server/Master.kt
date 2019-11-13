@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.sdfs.server
 
-import cn.edu.tsinghua.sdfs.server.handler.CommandHandler
+import cn.edu.tsinghua.sdfs.config
+import cn.edu.tsinghua.sdfs.server.handler.ServerCommandHandler
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
@@ -11,7 +12,7 @@ import io.netty.handler.stream.ChunkedWriteHandler
 //object Server {
 
 //    @JvmStatic
-fun main() {//args: Array<String>) {
+fun main(args: Array<String>) {
     val bootstrap = ServerBootstrap()
 
     val boss = NioEventLoopGroup()
@@ -22,14 +23,14 @@ fun main() {//args: Array<String>) {
             .childHandler(object : ChannelInitializer<NioSocketChannel>() {
                 @Throws(Exception::class)
                 override fun initChannel(channel: NioSocketChannel) {
-                    val pipeline = channel.pipeline()
-                    pipeline.addLast("streamer", ChunkedWriteHandler())
-                    pipeline.addLast("handler", CommandHandler())
+                    channel.pipeline()
+                            .addLast("streamer", ChunkedWriteHandler())
+                            .addLast("handler", ServerCommandHandler())
                 }
             })
 
     try {
-        val future = bootstrap.bind(6732).sync()
+        val future = bootstrap.bind(config.master.port).sync()
         future.channel().closeFuture().sync()
     } catch (e: Exception) {
         e.printStackTrace()

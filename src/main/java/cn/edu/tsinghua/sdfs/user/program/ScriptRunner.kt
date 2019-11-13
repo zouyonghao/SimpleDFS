@@ -6,7 +6,6 @@ import javax.script.Invocable
 fun main() {
     val engine = KotlinJsr223JvmLocalScriptEngineFactory().scriptEngine
     engine.eval("println(\"hello world\")")
-    engine.eval("println(\"hello world\")")
 
     engine.eval("""
 fun reduce(list: List<Int>) = list.reduce(operation = { a, b -> a + b })
