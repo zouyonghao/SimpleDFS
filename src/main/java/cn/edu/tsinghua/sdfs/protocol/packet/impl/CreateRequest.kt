@@ -7,12 +7,12 @@ import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 class CreateRequest() : Packet {
     var remoteFile: String = ""
     var localFile: String = ""
-    var fileSize: Long = 0
+    var fileLength: Long = 0
 
-    constructor(localFile: String, remoteFile: String, fileSize:Long) : this() {
+    constructor(localFile: String, remoteFile: String, fileLength:Long) : this() {
         this.localFile = localFile
         this.remoteFile = remoteFile
-        this.fileSize = fileSize
+        this.fileLength = fileLength
     }
 
     override val command: Int

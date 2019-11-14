@@ -1,11 +1,13 @@
 package cn.edu.tsinghua.sdfs.codec
 
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.CREATE_REQUEST
+import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.FILE_PACKET
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.LS
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.NAME_ITEM
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.RESULT
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
@@ -18,7 +20,8 @@ class Codec private constructor() {
             CREATE_REQUEST to CreateRequest::class.java,
             LS to LsPacket::class.java,
             RESULT to ResultToClient::class.java,
-            NAME_ITEM to NameItem::class.java
+            NAME_ITEM to NameItem::class.java,
+            FILE_PACKET to FilePacket::class.java
     )
 
     fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {

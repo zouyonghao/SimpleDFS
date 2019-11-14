@@ -7,6 +7,8 @@ import cn.edu.tsinghua.sdfs.server.NameItem
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
+import io.netty.handler.stream.ChunkedFile
+import java.io.File
 
 class ClientCommandHandler : ChannelInboundHandlerAdapter() {
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -21,8 +23,9 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
                 ctx.close()
             }
             is NameItem -> {
-                println(packet)
-                ctx.close()
+                if (packet.partitions.size > 0) {
+                    FileUploader.upload(packet)
+                }
             }
             else -> {
                 println(packet)

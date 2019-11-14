@@ -11,6 +11,8 @@ interface Command {
         const val COPY_TO_LOCAL = 6
         const val RM = 7
 
+        const val FILE_PACKET = 8
+
         const val RESULT = 10
         const val NAME_ITEM = 11
     }

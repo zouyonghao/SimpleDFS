@@ -9,7 +9,7 @@ import java.nio.file.Paths
 import java.util.ArrayList
 
 
-object FileUtils {
+object FileUtil {
     /**
      * Split a file into multiples files.
      *
@@ -18,13 +18,13 @@ object FileUtils {
      * @throws IOException
      */
     @Throws(IOException::class)
-    fun splitFile(fileName: String, splitSize: Int): List<Path> {
+    fun splitFile(fileName: String, splitSize: Long): List<Path> {
 
         require(splitSize > 0) { "splitSize must be more than zero" }
 
         val partFiles = ArrayList<Path>()
         val sourceSize = Files.size(Paths.get(fileName))
-        val bytesPerSplit = 1024L * 1024L * splitSize.toLong()
+        val bytesPerSplit = 1024L * 1024L * splitSize
         val numSplits = sourceSize / bytesPerSplit
         val remainingBytes = sourceSize % bytesPerSplit
         var position = 0
@@ -79,4 +79,6 @@ object FileUtils {
                 }
         mergedFile.close()
     }
+
+
 }

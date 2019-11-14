@@ -12,11 +12,11 @@ import kotlin.streams.toList
 import kotlin.test.assertEquals
 
 @Execution(ExecutionMode.SAME_THREAD)
-internal class FileUtilsTest {
+internal class FileUtilTest {
 
     companion object {
-        const val TEST_FILE = "test_file/SimpleDFS-1.0-SNAPSHOT-jar-with-dependencies.jar"
-        const val TEST_FILE_MERGE = "test_file/SimpleDFS-1.0-SNAPSHOT-jar-with-dependencies.jar.bak"
+        const val TEST_FILE = "test_file/test.jar"
+        const val TEST_FILE_MERGE = "test_file/test.jar.bak"
         @BeforeAll
         @AfterAll
         @JvmStatic
@@ -33,7 +33,7 @@ internal class FileUtilsTest {
 
     @Test
     fun splitFile() {
-        FileUtils.splitFile(TEST_FILE, 10)
+        FileUtil.splitFile(TEST_FILE, 10)
         val count = Files.walk(Paths.get("test_file")).filter { it.toString().contains(Regex("jar[0-9]{7}")) }.count()
         assertEquals(6, count)
     }
@@ -44,9 +44,9 @@ internal class FileUtilsTest {
         Files.copy(Paths.get(TEST_FILE), Paths.get(TEST_FILE_MERGE))
 
         val md5 = Files.readAllBytes(Paths.get(TEST_FILE_MERGE)).md5()
-        FileUtils.splitFile(TEST_FILE_MERGE, 10)
+        FileUtil.splitFile(TEST_FILE_MERGE, 10)
 
-        FileUtils.mergeFiles(TEST_FILE_MERGE, TEST_FILE_MERGE)
+        FileUtil.mergeFiles(TEST_FILE_MERGE, TEST_FILE_MERGE)
         assertEquals(md5, Files.readAllBytes(Paths.get(TEST_FILE_MERGE)).md5())
 
         Files.deleteIfExists(Paths.get(TEST_FILE_MERGE))

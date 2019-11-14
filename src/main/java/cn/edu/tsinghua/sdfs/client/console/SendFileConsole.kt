@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.sdfs.client.console
 
+import cn.edu.tsinghua.sdfs.client.handler.FileUploader
 import cn.edu.tsinghua.sdfs.codec.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
@@ -19,6 +20,8 @@ object SendFileConsole {
             "copyFromLocal" -> {
                 val localFile = args[1]
                 val remoteFile = args[2]
+                FileUploader.localFile = localFile
+                FileUploader.remoteFile = remoteFile
                 if (Files.notExists(Paths.get(localFile))) {
                     println("local file not exist.")
                     channel.close()

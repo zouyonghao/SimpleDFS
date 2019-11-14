@@ -3,13 +3,9 @@ package cn.edu.tsinghua.sdfs.client
 import cn.edu.tsinghua.sdfs.client.console.SendFileConsole
 import cn.edu.tsinghua.sdfs.client.handler.ClientCommandHandler
 import cn.edu.tsinghua.sdfs.config
-import io.netty.bootstrap.Bootstrap
-import io.netty.channel.ChannelInitializer
-import io.netty.channel.ChannelOption
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.nio.NioSocketChannel
+import cn.edu.tsinghua.sdfs.io.NetUtil
 
-//object Client {
+// object Client {
 
 @Throws(InterruptedException::class)
 // @JvmStatic
@@ -20,24 +16,10 @@ fun main(args: Array<String>) {
         return
     }
 
-    val master = Bootstrap()
-
-    val group = NioEventLoopGroup()
-
-    master.group(group)
-            .channel(NioSocketChannel::class.java)
-            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-            .option(ChannelOption.SO_KEEPALIVE, true)
-            .option(ChannelOption.TCP_NODELAY, true)
-            .handler(object : ChannelInitializer<NioSocketChannel>() {
-                @Throws(Exception::class)
-                override fun initChannel(channel: NioSocketChannel) {
-                    channel.pipeline()
-                            .addLast(ClientCommandHandler())
-                }
-            })
-
-    val future = master.connect(config.master.ip, config.master.port).sync()
+    val future = NetUtil.connect(
+            config.master.ip,
+            config.master.port,
+            ClientCommandHandler())
     if (future.isSuccess) {
         // println("connect success!")
         val channel = future.channel()
@@ -49,8 +31,7 @@ fun main(args: Array<String>) {
 
     future.channel().closeFuture().sync()
 
-    group.shutdownGracefully()
-
+    NetUtil.shutdownGracefully(future)
 }
 
-//}
+// }

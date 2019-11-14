@@ -18,8 +18,9 @@ import java.nio.file.Paths
  * }
  */
 data class NameItem(
-        val fileSize: Long,
-        val partitions: MutableList<MutableList<Server>>
+        val fileLength: Long,
+        val partitions: MutableList<MutableList<Server>>,
+        val partitionSize: Long
 ) : Packet {
     override val command: Int
         get() = Command.NAME_ITEM
@@ -44,11 +45,11 @@ object NameManager {
             Files.createDirectories(dir)
         }
 
-        val bytesPerSplit = 1024L * 1024L * config.blockSize.toLong()
+        val bytesPerSplit = 1024L * 1024L * config.blockSize
         val numSplits = fileSize / bytesPerSplit
         val remainingBytes = fileSize % bytesPerSplit
 
-        val nameItem = NameItem(fileSize, mutableListOf())
+        val nameItem = NameItem(fileSize, mutableListOf(), config.blockSize)
         for (i in 0 until numSplits) {
             allocateSlave(nameItem)
         }

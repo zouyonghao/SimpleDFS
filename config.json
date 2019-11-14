@@ -11,6 +11,6 @@
       "folder": "data_sdfs"
     }
   ],
-  "replication": 2,
+  "replication": 1,
   "blockSize": 4096
 }

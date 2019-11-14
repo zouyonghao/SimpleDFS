@@ -9,8 +9,6 @@ class LsPacket() : Packet {
     }
 
     var path = ""
-        get
-        set
 
     override val command: Int
         get() = Command.LS
