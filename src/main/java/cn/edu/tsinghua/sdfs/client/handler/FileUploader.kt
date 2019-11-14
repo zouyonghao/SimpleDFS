@@ -6,6 +6,7 @@ import cn.edu.tsinghua.sdfs.io.FileUtil
 import cn.edu.tsinghua.sdfs.io.NetUtil
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.server.NameItem
+import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFuture
 import io.netty.channel.DefaultFileRegion
 import io.netty.handler.stream.ChunkedWriteHandler
@@ -32,16 +33,20 @@ object FileUploader {
                     serverToFutureMap.putIfAbsent(it, getChannel(it))
                     val future: ChannelFuture = serverToFutureMap[it]!!
                     val name = remoteFile + splitFile.toString().substringAfter(localFile)
-                    future.channel().writeAndFlush(
-                            Codec.INSTANCE.encode(future.channel().alloc().ioBuffer(),
-                                    FilePacket(name, splitFile.toFile().length())
-                            ))
-                    // TODO: HERE?!!! FIX TCP PACKET!!
-                    Thread.sleep(200)
-                    println(splitFile.toFile().length())
-                    future.channel().writeAndFlush(
-                            DefaultFileRegion(splitFile.toFile(), 0, splitFile.toFile().length())
-                    )
+                    future.channel().run {
+                        writeAndFlush(
+                                Codec.INSTANCE.encode(future.channel().alloc().ioBuffer(),
+                                        FilePacket(name, splitFile.toFile().length())
+                                ))
+                        // FIX TCP PACKET in @see{SlaveCommandHandler}
+                        // Thread.sleep(200)
+                        // writeAndFlush(Unpooled.wrappedBuffer("/".toByteArray()))
+                        println(splitFile.toFile().length())
+
+                        writeAndFlush(
+                                DefaultFileRegion(splitFile.toFile(), 0, splitFile.toFile().length())
+                        )
+                    }
                 }
             }
         }

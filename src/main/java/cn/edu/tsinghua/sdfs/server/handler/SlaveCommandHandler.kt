@@ -42,6 +42,18 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
         Codec.INSTANCE.decode(byteBuf).cast<FilePacket>().run {
             this@SlaveCommandHandler.fileLength = this.fileLength
             randomAccessFile = DataManager.getRandomAccessFile(this.file)
+            // fix TCP packet here
+            // TODO: better solution
+            if (byteBuf.readableBytes() > 0) {
+                var written = 0
+                val size = byteBuf.readableBytes()
+                while (written < size) {
+                    written += randomAccessFile.channel.write(byteBuf.nioBuffer())
+                }
+                // byteBuf.readerIndex(byteBuf.readerIndex() + written)
+                position += written
+                randomAccessFile.channel.force(true)
+            }
         }
     }
 }
