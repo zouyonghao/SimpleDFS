@@ -32,7 +32,7 @@ object NameManager {
     private val ROOT_DIR = Paths.get(config.master.folder)
 
     init {
-        if (Files.exists(ROOT_DIR)) {
+        if (Files.notExists(ROOT_DIR)) {
             Files.createDirectories(ROOT_DIR)
         }
     }

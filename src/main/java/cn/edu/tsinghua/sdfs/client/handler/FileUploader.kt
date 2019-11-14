@@ -8,7 +8,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.server.NameItem
 import io.netty.channel.ChannelFuture
 import io.netty.channel.DefaultFileRegion
-import java.io.File
+import io.netty.handler.stream.ChunkedWriteHandler
 
 object FileUploader {
 
@@ -36,6 +36,9 @@ object FileUploader {
                             Codec.INSTANCE.encode(future.channel().alloc().ioBuffer(),
                                     FilePacket(name, splitFile.toFile().length())
                             ))
+                    // TODO: HERE?!!! FIX TCP PACKET!!
+                    Thread.sleep(200)
+                    println(splitFile.toFile().length())
                     future.channel().writeAndFlush(
                             DefaultFileRegion(splitFile.toFile(), 0, splitFile.toFile().length())
                     )
@@ -43,10 +46,13 @@ object FileUploader {
             }
         }
 
-        serverToFutureMap.values.forEach { it.channel().close() }
+        serverToFutureMap.values.forEach {
+            it.channel().closeFuture().sync()
+            NetUtil.shutdownGracefully(it)
+        }
     }
 
     private fun getChannel(it: Server): ChannelFuture {
-        return NetUtil.connect(it.ip, it.port)
+        return NetUtil.connect(it.ip, it.port, ChunkedWriteHandler())
     }
 }

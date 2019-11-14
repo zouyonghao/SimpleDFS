@@ -9,27 +9,39 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.io.RandomAccessFile
 
+
 class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
 
-    private lateinit var randomAccessFile:RandomAccessFile
-    private var fileLength:Long = 0
+    private lateinit var randomAccessFile: RandomAccessFile
+    private var fileLength: Long = 0
+    private var position: Long = 0
 
     @Throws(Exception::class)
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         val byteBuf = msg as ByteBuf
         val type = byteBuf.getInt(0)
         if (type != Codec.TYPE) {
-            randomAccessFile.seek(randomAccessFile.length())
-            randomAccessFile.channel.write(byteBuf.nioBuffer())
+            val byteBuffer = byteBuf.nioBuffer()
+            var written = 0
+            val size = byteBuf.readableBytes()
+            while (written < size) {
+                written += randomAccessFile.channel.write(byteBuffer)
+            }
+            // byteBuf.readerIndex(byteBuf.readerIndex() + written)
+            position += written
+            randomAccessFile.channel.force(true)
             byteBuf.release()
-            if (randomAccessFile.length() == fileLength) {
+
+            if (position == fileLength) {
+                println("upload success")
+                randomAccessFile.close()
                 ctx.channel().close()
             }
             return
         }
         Codec.INSTANCE.decode(byteBuf).cast<FilePacket>().run {
             this@SlaveCommandHandler.fileLength = this.fileLength
-            randomAccessFile = DataManager.getFileChannel(this.file)
+            randomAccessFile = DataManager.getRandomAccessFile(this.file)
         }
     }
 }
