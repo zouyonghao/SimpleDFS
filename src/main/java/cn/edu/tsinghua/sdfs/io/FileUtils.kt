@@ -46,7 +46,7 @@ object FileUtils {
 
     @Throws(IOException::class)
     private fun writePartToFile(byteSize: Long, position: Long, sourceChannel: FileChannel, partFiles: MutableList<Path>, fileName: String) {
-        val file = Paths.get(fileName + partFiles.size)
+        val file = Paths.get(fileName + String.format("%07d", partFiles.size))
 
         // TODO: transfer file when split
         with(RandomAccessFile(file.toFile(), "rw")) {
@@ -64,7 +64,7 @@ object FileUtils {
         val mergedFile = RandomAccessFile(output, "rw")
         var index = 0L
         Files.walk(path.subpath(0, path.nameCount - 1))
-                .filter { it.fileName.toString().contains(Regex("${path.fileName}\\d+")) }
+                .filter { it.fileName.toString().contains(Regex("${path.fileName}\\d{7}")) }
                 .forEachOrdered { it ->
                     // println(it)
                     RandomAccessFile(it.toFile(), "r").let { part ->

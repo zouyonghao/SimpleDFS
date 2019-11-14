@@ -1,8 +1,10 @@
 package cn.edu.tsinghua.sdfs.server
 
+import cn.edu.tsinghua.sdfs.Server
 import cn.edu.tsinghua.sdfs.config
+import cn.edu.tsinghua.sdfs.protocol.command.Command
+import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 import com.alibaba.fastjson.JSON
-import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -17,13 +19,16 @@ import java.nio.file.Paths
  */
 data class NameItem(
         val fileSize: Long,
-        val partitions: List<List<Int>>
-)
+        val partitions: MutableList<MutableList<Server>>
+) : Packet {
+    override val command: Int
+        get() = Command.NAME_ITEM
+}
 
 fun NameItem.toJsonString() = JSON.toJSONString(this)!!
 
 object NameManager {
-    private val ROOT_DIR = Paths.get(config.nameFolder)
+    private val ROOT_DIR = Paths.get(config.master.folder)
 
     init {
         if (Files.exists(ROOT_DIR)) {
@@ -38,9 +43,28 @@ object NameManager {
         if (Files.notExists(dir)) {
             Files.createDirectories(dir)
         }
-        val nameItem = NameItem(fileSize, emptyList())
+
+        val bytesPerSplit = 1024L * 1024L * config.blockSize.toLong()
+        val numSplits = fileSize / bytesPerSplit
+        val remainingBytes = fileSize % bytesPerSplit
+
+        val nameItem = NameItem(fileSize, mutableListOf())
+        for (i in 0 until numSplits) {
+            allocateSlave(nameItem)
+        }
+        if (remainingBytes > 0) {
+            allocateSlave(nameItem)
+        }
         Files.write(item, nameItem.toJsonString().toByteArray())
         return nameItem
+    }
+
+    private fun allocateSlave(nameItem: NameItem) {
+        val list = mutableListOf<Server>()
+        nameItem.partitions.add(list)
+        for (j in 0 until config.replication) {
+            list.add(config.slaves.random())
+        }
     }
 
     fun ls(filePath: String): String {

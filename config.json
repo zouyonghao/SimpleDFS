@@ -1,12 +1,16 @@
 {
   "master": {
     "ip": "localhost",
-    "port": 6732
+    "port": 6732,
+    "folder": "name_sdfs"
   },
-  "slaves": [],
-
-  "nameFolder": "name_sdfs",
-  "dataFolder": "data_sdfs",
-  "dfsReplication": 1,
-  "dfsBlkSize": 4096
+  "slaves": [
+    {
+      "ip": "localhost",
+      "port": 6733,
+      "folder": "data_sdfs"
+    }
+  ],
+  "replication": 2,
+  "blockSize": 4096
 }

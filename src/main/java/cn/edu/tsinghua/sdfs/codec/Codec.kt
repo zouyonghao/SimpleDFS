@@ -1,26 +1,25 @@
 package cn.edu.tsinghua.sdfs.codec
 
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
-import cn.edu.tsinghua.sdfs.protocol.packet.Packet
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.CREATE_REQUEST
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.LS
+import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.NAME_ITEM
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.RESULT
+import cn.edu.tsinghua.sdfs.protocol.packet.Packet
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
+import cn.edu.tsinghua.sdfs.server.NameItem
 import io.netty.buffer.ByteBuf
-import java.util.HashMap
 
 class Codec private constructor() {
 
-    private val packetTypeMap: MutableMap<Int, Class<out Packet>>
-
-    init {
-        packetTypeMap = HashMap()
-        packetTypeMap[CREATE_REQUEST] = CreateRequest::class.java
-        packetTypeMap[LS] = LsPacket::class.java
-        packetTypeMap[RESULT] = ResultToClient::class.java
-    }
+    private val packetTypeMap = mapOf(
+            CREATE_REQUEST to CreateRequest::class.java,
+            LS to LsPacket::class.java,
+            RESULT to ResultToClient::class.java,
+            NAME_ITEM to NameItem::class.java
+    )
 
     fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {
         val bytes = Serializer.DEFAULT.serialize(packet)

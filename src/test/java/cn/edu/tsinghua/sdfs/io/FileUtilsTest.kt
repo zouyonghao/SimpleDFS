@@ -22,10 +22,10 @@ internal class FileUtilsTest {
         @JvmStatic
         fun clean() {
             Files.walk(Paths.get("test_file"))
-                    .filter { it.toString().contains(Regex("(jar[0-9])|(bak[0-9])|output")) }
+                    .filter { it.toString().contains(Regex("(jar[0-9]{7})|(bak[0-9]{7})|output")) }
                     .toList()
                     .forEach {
-                        // println(it)
+                        println(it)
                         Files.deleteIfExists(it)
                     }
         }
@@ -34,7 +34,7 @@ internal class FileUtilsTest {
     @Test
     fun splitFile() {
         FileUtils.splitFile(TEST_FILE, 10)
-        val count = Files.walk(Paths.get("test_file")).filter { it.toString().contains(Regex("jar[0-9]")) }.count()
+        val count = Files.walk(Paths.get("test_file")).filter { it.toString().contains(Regex("jar[0-9]{7}")) }.count()
         assertEquals(6, count)
     }
 

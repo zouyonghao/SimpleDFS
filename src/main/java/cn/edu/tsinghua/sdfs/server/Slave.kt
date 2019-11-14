@@ -1,17 +1,15 @@
 package cn.edu.tsinghua.sdfs.server
 
 import cn.edu.tsinghua.sdfs.config
-import cn.edu.tsinghua.sdfs.server.handler.MasterCommandHandler
+import cn.edu.tsinghua.sdfs.server.handler.SlaveCommandHandler
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.stream.ChunkedWriteHandler
 
-//object Server {
-
-//    @JvmStatic
-fun main(args: Array<String>) {
+fun main() {
     val bootstrap = ServerBootstrap()
 
     val boss = NioEventLoopGroup()
@@ -23,17 +21,14 @@ fun main(args: Array<String>) {
                 @Throws(Exception::class)
                 override fun initChannel(channel: NioSocketChannel) {
                     channel.pipeline()
-                            .addLast("handler", MasterCommandHandler())
+                            .addLast("streamer", ChunkedWriteHandler())
+                            .addLast("handler", SlaveCommandHandler())
                 }
             })
 
-    val future = bootstrap.bind(config.master.port).sync()
+    val future = bootstrap.bind(config.slaves[0].port).sync()
     future.channel().closeFuture().sync()
 
     worker.shutdownGracefully()
     boss.shutdownGracefully()
-
 }
-
-
-//}

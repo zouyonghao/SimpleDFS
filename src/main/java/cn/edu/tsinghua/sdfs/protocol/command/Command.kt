@@ -12,5 +12,6 @@ interface Command {
         const val RM = 7
 
         const val RESULT = 10
+        const val NAME_ITEM = 11
     }
 }
