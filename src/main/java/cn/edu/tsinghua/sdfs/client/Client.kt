@@ -39,7 +39,7 @@ fun main(args: Array<String>) {
 
     val future = master.connect(config.master.ip, config.master.port).sync()
     if (future.isSuccess) {
-        println("connect success!")
+        // println("connect success!")
         val channel = future.channel()
         SendFileConsole.exec(channel, args)
     } else {

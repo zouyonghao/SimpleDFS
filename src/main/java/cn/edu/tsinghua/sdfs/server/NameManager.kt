@@ -2,6 +2,7 @@ package cn.edu.tsinghua.sdfs.server
 
 import cn.edu.tsinghua.sdfs.config
 import com.alibaba.fastjson.JSON
+import java.nio.file.FileVisitOption
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -22,7 +23,7 @@ data class NameItem(
 fun NameItem.toJsonString() = JSON.toJSONString(this)!!
 
 object NameManager {
-    val ROOT_DIR = Paths.get(config.nameFolder)
+    private val ROOT_DIR = Paths.get(config.nameFolder)
 
     init {
         if (Files.exists(ROOT_DIR)) {
@@ -40,5 +41,10 @@ object NameManager {
         val nameItem = NameItem(fileSize, emptyList())
         Files.write(item, nameItem.toJsonString().toByteArray())
         return nameItem
+    }
+
+    fun ls(filePath: String): String {
+        val dir = Paths.get(ROOT_DIR.toString(), filePath)
+        return Files.walk(dir, 1).map { it.subpath(1, it.nameCount) }.toArray().joinToString("\n")
     }
 }

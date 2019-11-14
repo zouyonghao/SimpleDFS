@@ -12,9 +12,9 @@ object SendFileConsole {
     fun exec(channel: Channel, args: Array<String>) {
         when (args[0]) {
             "ls" -> {
-                println("ls command executing...")
+                // println("ls command executing...")
                 channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), LsPacket(args[1])))
-                channel.close()
+                // channel.close()
             }
             "copyFromLocal" -> {
                 val localFile = args[1]

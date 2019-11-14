@@ -9,6 +9,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import java.io.FileOutputStream
+import java.nio.file.Paths
 
 class ServerCommandHandler : ChannelInboundHandlerAdapter() {
 
@@ -32,10 +33,9 @@ class ServerCommandHandler : ChannelInboundHandlerAdapter() {
                 // ctx.channel().writeAndFlush(Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(), packet))
             }
             is LsPacket -> {
-                println("get Ls Packet")
                 ctx.channel().writeAndFlush(
                         Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(),
-                                ResultToClient("send a result"))
+                                ResultToClient(NameManager.ls(packet.path)))
                 )
             }
             else -> {

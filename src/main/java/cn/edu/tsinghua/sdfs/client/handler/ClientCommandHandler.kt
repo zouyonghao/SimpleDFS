@@ -17,6 +17,7 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
         when (val packet = Codec.INSTANCE.decode(byteBuf)) {
             is ResultToClient -> {
                 println(packet.result)
+                ctx.close()
             }
             else -> {
                 println(packet)
