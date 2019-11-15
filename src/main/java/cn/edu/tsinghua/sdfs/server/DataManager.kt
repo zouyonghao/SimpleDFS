@@ -17,6 +17,12 @@ object DataManager {
 
     fun getRandomAccessFile(filePath: String): RandomAccessFile {
         val localPath = Paths.get(ROOT_DIR.toString(), filePath)
+        deleteFile(filePath)
+        return RandomAccessFile(localPath.toFile(), "rw")
+    }
+
+    fun deleteFile(filePath:String) {
+        val localPath = Paths.get(ROOT_DIR.toString(), filePath)
         val dir = localPath.parent
         if (Files.exists(dir) && !Files.isDirectory(dir)) {
             Files.delete(dir)
@@ -24,7 +30,5 @@ object DataManager {
         Files.createDirectories(dir)
 
         Files.deleteIfExists(localPath)
-
-        return RandomAccessFile(localPath.toFile(), "rw")
     }
 }

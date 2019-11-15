@@ -4,6 +4,7 @@ import cn.edu.tsinghua.sdfs.Server
 import cn.edu.tsinghua.sdfs.config
 import cn.edu.tsinghua.sdfs.protocol.command.Command
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
+import cn.edu.tsinghua.sdfs.protocol.serilizer.impl.JSONSerializer
 import com.alibaba.fastjson.JSON
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -24,6 +25,8 @@ data class NameItem(
 ) : Packet {
     override val command: Int
         get() = Command.NAME_ITEM
+
+    var exist: Boolean = false
 }
 
 fun NameItem.toJsonString() = JSON.toJSONString(this)!!
@@ -37,9 +40,17 @@ object NameManager {
         }
     }
 
-    fun create(filePath: String, fileSize: Long): NameItem {
+    fun createOrGet(filePath: String, fileSize: Long): NameItem {
         val dir = Paths.get(ROOT_DIR.toString(), filePath)
         val item = Paths.get(dir.toAbsolutePath().toString(), "item.json")
+
+        if (Files.exists(item)) {
+            val nameItem = JSONSerializer().deserialize(Files.readAllBytes(item), NameItem::class.java)
+            nameItem.exist = true
+            // TODO: user can choose whether to delete this file
+            Files.delete(item)
+            return nameItem
+        }
 
         if (Files.notExists(dir)) {
             Files.createDirectories(dir)
@@ -50,6 +61,8 @@ object NameManager {
         val remainingBytes = fileSize % bytesPerSplit
 
         val nameItem = NameItem(fileSize, mutableListOf(), config.blockSize)
+
+
         for (i in 0 until numSplits) {
             allocateSlave(nameItem)
         }

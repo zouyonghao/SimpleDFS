@@ -2,18 +2,18 @@ package cn.edu.tsinghua.sdfs.server.handler
 
 import cn.edu.tsinghua.sdfs.codec.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
 import cn.edu.tsinghua.sdfs.server.DataManager
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 import java.io.RandomAccessFile
 
 
 class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
 
     private lateinit var randomAccessFile: RandomAccessFile
-    private lateinit var fileName:String
+    private lateinit var fileName: String
     private var fileLength: Long = 0
     private var position: Long = 0
 
@@ -41,25 +41,30 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
             }
             return
         }
-        Codec.INSTANCE.decode(byteBuf).cast<FilePacket>().run {
-            this@SlaveCommandHandler.fileLength = this.fileLength
-            this@SlaveCommandHandler.fileName = this.file
-            randomAccessFile = DataManager.getRandomAccessFile(this.file)
-            // fix TCP packet here
-            // TODO: better solution
-            // if (byteBuf.readableBytes() > 0) {
-            //     var written = 0
-            //     val size = byteBuf.readableBytes()
-            //     while (written < size) {
-            //         written += randomAccessFile.channel.write(byteBuf.nioBuffer())
-            //     }
-            //     position += written
-            //     randomAccessFile.channel.force(true)
-            // }
-            // send a packet to let client start sending file
-            ctx.channel().writeAndFlush(
-                    Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(),
-                            this))
+        when (val packet = Codec.INSTANCE.decode(byteBuf)) {
+            is FilePacket -> {
+                this@SlaveCommandHandler.fileLength = packet.fileLength
+                this@SlaveCommandHandler.fileName = packet.file
+                randomAccessFile = DataManager.getRandomAccessFile(packet.file)
+                // fix TCP packet here
+                // TODO: better solution
+                // if (byteBuf.readableBytes() > 0) {
+                //     var written = 0
+                //     val size = byteBuf.readableBytes()
+                //     while (written < size) {
+                //         written += randomAccessFile.channel.write(byteBuf.nioBuffer())
+                //     }
+                //     position += written
+                //     randomAccessFile.channel.force(true)
+                // }
+                // send a packet to let client start sending file
+                ctx.channel().writeAndFlush(Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(), packet))
+            }
+            is RmPartition -> {
+                DataManager.deleteFile(packet.file)
+                ctx.channel().writeAndFlush(Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(), packet))
+                ctx.channel().close()
+            }
         }
     }
 }

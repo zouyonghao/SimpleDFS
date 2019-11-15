@@ -12,5 +12,5 @@
     }
   ],
   "replication": 1,
-  "blockSize": 4096
+  "blockSize": 100
 }

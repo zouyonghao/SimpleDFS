@@ -15,5 +15,7 @@ interface Command {
 
         const val RESULT = 10
         const val NAME_ITEM = 11
+
+        const val RM_PARTITION = 12
     }
 }

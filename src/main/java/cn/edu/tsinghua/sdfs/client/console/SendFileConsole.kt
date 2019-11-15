@@ -10,7 +10,12 @@ import java.nio.file.Paths
 
 object SendFileConsole {
 
+    lateinit var localFile: String
+    lateinit var remoteFile: String
+    lateinit var channel: Channel
+
     fun exec(channel: Channel, args: Array<String>) {
+        this.channel = channel
         when (args[0]) {
             "ls" -> {
                 // println("ls command executing...")
@@ -18,8 +23,8 @@ object SendFileConsole {
                 // channel.close()
             }
             "copyFromLocal" -> {
-                val localFile = args[1]
-                val remoteFile = args[2]
+                localFile = args[1]
+                remoteFile = args[2]
                 FileUploader.localFile = localFile
                 FileUploader.remoteFile = remoteFile
                 if (Files.notExists(Paths.get(localFile))) {
@@ -27,10 +32,14 @@ object SendFileConsole {
                     channel.close()
                     return
                 }
-                val createRequest = CreateRequest(localFile, remoteFile, Files.size(Paths.get(localFile)))
-                channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), createRequest))
+                sendCreateRequest()
             }
         }
+    }
+
+    fun sendCreateRequest() {
+        val createRequest = CreateRequest(localFile, remoteFile, Files.size(Paths.get(localFile)))
+        channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), createRequest))
     }
 
 }

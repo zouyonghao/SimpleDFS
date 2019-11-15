@@ -21,7 +21,7 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
         }
         when (val packet = Codec.INSTANCE.decode(byteBuf)) {
             is CreateRequest -> {
-                val nameItem = NameManager.create(packet.remoteFile, packet.fileLength)
+                val nameItem = NameManager.createOrGet(packet.remoteFile, packet.fileLength)
                 ctx.channel().writeAndFlush(Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(), nameItem))
             }
             is LsPacket -> {

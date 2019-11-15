@@ -6,8 +6,8 @@ import com.alibaba.fastjson.JSON
 
 class JSONSerializer : Serializer {
 
-    override fun serialize(`object`: Any): ByteArray {
-        return JSON.toJSONBytes(`object`)
+    override fun serialize(obj: Any): ByteArray {
+        return JSON.toJSONBytes(obj)
     }
 
     override fun <T> deserialize(bytes: ByteArray, clazz: Class<out T>): T {
