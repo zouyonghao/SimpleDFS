@@ -1,30 +1,32 @@
-package cn.edu.tsinghua.sdfs.codec
+package cn.edu.tsinghua.sdfs.protocol
 
+import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.CREATE_REQUEST
+import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.DOWNLOAD_REQUEST
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.FILE_PACKET
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.LS
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.NAME_ITEM
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.RESULT
 import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.RM_PARTITION
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.*
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
 import cn.edu.tsinghua.sdfs.server.NameItem
 import io.netty.buffer.ByteBuf
+import io.netty.channel.Channel
 
-class Codec private constructor() {
+object Codec {
+
+    const val TYPE = 0x12345678
 
     private val packetTypeMap = mapOf(
-            CREATE_REQUEST  to CreateRequest::class.java,
-            LS              to LsPacket::class.java,
-            RESULT          to ResultToClient::class.java,
-            NAME_ITEM       to NameItem::class.java,
-            FILE_PACKET     to FilePacket::class.java,
-            RM_PARTITION    to RmPartition::class.java
+            CREATE_REQUEST      to CreateRequest::class.java,
+            LS                  to LsPacket::class.java,
+            RESULT              to ResultToClient::class.java,
+            NAME_ITEM           to NameItem::class.java,
+            FILE_PACKET         to FilePacket::class.java,
+            RM_PARTITION        to RmPartition::class.java,
+            DOWNLOAD_REQUEST    to DownloadRequest::class.java
     )
 
     fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {
@@ -43,17 +45,13 @@ class Codec private constructor() {
         val bytes = ByteArray(len)
         byteBuf.readBytes(bytes)
 
-        val clazz = packetTypeMap[command] ?: throw NullPointerException("解析失败，没有该类型的数据包")
+        val clazz = packetTypeMap[command] ?: throw WrongCodecException()
 
         return Serializer.DEFAULT.deserialize(bytes, clazz)
     }
 
-    companion object {
-
-        const val TYPE = 0x12345678
-
-        var INSTANCE = Codec()
+    fun writeAndFlushPacket(channel:Channel, packet: Packet) {
+        channel.writeAndFlush(encode(channel.alloc().ioBuffer(), packet))
     }
-
 
 }

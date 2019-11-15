@@ -17,5 +17,6 @@ interface Command {
         const val NAME_ITEM = 11
 
         const val RM_PARTITION = 12
+        const val DOWNLOAD_REQUEST = 13
     }
 }

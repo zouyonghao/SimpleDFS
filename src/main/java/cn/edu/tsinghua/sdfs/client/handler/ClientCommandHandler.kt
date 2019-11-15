@@ -1,9 +1,9 @@
 package cn.edu.tsinghua.sdfs.client.handler
 
 import cn.edu.tsinghua.sdfs.client.console.SendFileConsole
-import cn.edu.tsinghua.sdfs.codec.Codec
 import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.io.NetUtil.shutdownGracefully
+import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
@@ -25,19 +25,24 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
         if (type != Codec.TYPE) {
             throw WrongCodecException()
         }
-        when (val packet = Codec.INSTANCE.decode(byteBuf)) {
+        when (val packet = Codec.decode(byteBuf)) {
             is ResultToClient -> {
                 println(packet.result)
                 ctx.channel().close()
             }
             is NameItem -> {
                 if (packet.exist) {
-                    println("exist")
-                    packet.partitions.forEach { it.forEach { _ -> partitionsNeedDelete++ } }
-                    println("file already exist, old one will be deleted")
-                    FileUploader.deleteOld(packet)
+                    // download
+                    if (packet.download) {
+                        FileDownloader.fileLength = packet.fileLength
+                        FileDownloader.download(packet)
+                        ctx.channel().close()
+                    } else {
+                        packet.partitions.forEach { it.forEach { _ -> partitionsNeedDelete++ } }
+                        println("file already exist, old one will be deleted")
+                        FileUploader.deleteOld(packet)
+                    }
                 } else {
-                    println("new")
                     if (packet.partitions.size > 0) {
                         FileUploader.upload(packet)
                     }

@@ -26,7 +26,8 @@ data class NameItem(
     override val command: Int
         get() = Command.NAME_ITEM
 
-    var exist: Boolean = false
+    var exist = false
+    var download = false
 }
 
 fun NameItem.toJsonString() = JSON.toJSONString(this)!!
@@ -37,6 +38,22 @@ object NameManager {
     init {
         if (Files.notExists(ROOT_DIR)) {
             Files.createDirectories(ROOT_DIR)
+        }
+    }
+
+    fun getNameItemForDownload(filePath: String): NameItem {
+        val dir = Paths.get(ROOT_DIR.toString(), filePath)
+        val item = Paths.get(dir.toAbsolutePath().toString(), "item.json")
+
+        return if (Files.exists(item)) {
+            JSONSerializer().deserialize(Files.readAllBytes(item), NameItem::class.java).apply {
+                exist = true
+                download = true
+            }
+        } else {
+            NameItem(0, emptyList<MutableList<Server>>().toMutableList(), 0).apply {
+                exist = false
+            }
         }
     }
 

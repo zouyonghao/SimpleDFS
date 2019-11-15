@@ -1,8 +1,10 @@
 package cn.edu.tsinghua.sdfs.client.console
 
+import cn.edu.tsinghua.sdfs.client.handler.FileDownloader
 import cn.edu.tsinghua.sdfs.client.handler.FileUploader
-import cn.edu.tsinghua.sdfs.codec.Codec
+import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import io.netty.channel.Channel
 import java.nio.file.Files
@@ -19,7 +21,7 @@ object SendFileConsole {
         when (args[0]) {
             "ls" -> {
                 // println("ls command executing...")
-                channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), LsPacket(args[1])))
+                Codec.writeAndFlushPacket(channel, LsPacket(args[1]))
                 // channel.close()
             }
             "copyFromLocal" -> {
@@ -34,12 +36,24 @@ object SendFileConsole {
                 }
                 sendCreateRequest()
             }
+            "copyFromRemote" -> {
+                remoteFile = args[1]
+                localFile = args[2]
+                FileDownloader.localFile = localFile
+                FileDownloader.remoteFile = remoteFile
+                if (Files.exists(Paths.get(localFile))) {
+                    println("local file exist.")
+                    channel.close()
+                    return
+                }
+                Codec.writeAndFlushPacket(channel, DownloadRequest(remoteFile))
+            }
         }
     }
 
     fun sendCreateRequest() {
         val createRequest = CreateRequest(localFile, remoteFile, Files.size(Paths.get(localFile)))
-        channel.writeAndFlush(Codec.INSTANCE.encode(channel.alloc().ioBuffer(), createRequest))
+        Codec.writeAndFlushPacket(channel, createRequest)
     }
 
 }

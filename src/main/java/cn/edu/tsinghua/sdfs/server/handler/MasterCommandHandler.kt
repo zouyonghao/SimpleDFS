@@ -1,8 +1,9 @@
 package cn.edu.tsinghua.sdfs.server.handler
 
-import cn.edu.tsinghua.sdfs.codec.Codec
 import cn.edu.tsinghua.sdfs.exception.WrongCodecException
+import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.server.NameManager
@@ -19,16 +20,16 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
         if (type != Codec.TYPE) {
             throw WrongCodecException()
         }
-        when (val packet = Codec.INSTANCE.decode(byteBuf)) {
+        when (val packet = Codec.decode(byteBuf)) {
             is CreateRequest -> {
                 val nameItem = NameManager.createOrGet(packet.remoteFile, packet.fileLength)
-                ctx.channel().writeAndFlush(Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(), nameItem))
+                Codec.writeAndFlushPacket(ctx.channel(), nameItem)
             }
             is LsPacket -> {
-                ctx.channel().writeAndFlush(
-                        Codec.INSTANCE.encode(ctx.channel().alloc().ioBuffer(),
-                                ResultToClient(NameManager.ls(packet.path)))
-                )
+                Codec.writeAndFlushPacket(ctx.channel(), ResultToClient(NameManager.ls(packet.path)))
+            }
+            is DownloadRequest -> {
+                Codec.writeAndFlushPacket(ctx.channel(), NameManager.getNameItemForDownload(packet.filePath))
             }
         }
 

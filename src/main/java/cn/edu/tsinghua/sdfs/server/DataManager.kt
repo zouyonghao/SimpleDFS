@@ -15,13 +15,18 @@ object DataManager {
         }
     }
 
-    fun getRandomAccessFile(filePath: String): RandomAccessFile {
+    fun getFile(filePath: String): RandomAccessFile {
+        val localPath = Paths.get(ROOT_DIR.toString(), filePath)
+        return RandomAccessFile(localPath.toFile(), "rw")
+    }
+
+    fun deleteAndCreate(filePath: String): RandomAccessFile {
         val localPath = Paths.get(ROOT_DIR.toString(), filePath)
         deleteFile(filePath)
         return RandomAccessFile(localPath.toFile(), "rw")
     }
 
-    fun deleteFile(filePath:String) {
+    fun deleteFile(filePath: String) {
         val localPath = Paths.get(ROOT_DIR.toString(), filePath)
         val dir = localPath.parent
         if (Files.exists(dir) && !Files.isDirectory(dir)) {
