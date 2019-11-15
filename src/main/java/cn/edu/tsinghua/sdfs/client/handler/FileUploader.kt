@@ -6,10 +6,11 @@ import cn.edu.tsinghua.sdfs.io.FileUtil
 import cn.edu.tsinghua.sdfs.io.NetUtil
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.server.NameItem
-import io.netty.buffer.Unpooled
+import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.DefaultFileRegion
 import io.netty.handler.stream.ChunkedWriteHandler
+import java.io.RandomAccessFile
 
 object FileUploader {
 
@@ -41,23 +42,43 @@ object FileUploader {
                         // FIX TCP PACKET in @see{SlaveCommandHandler}
                         // Thread.sleep(200)
                         // writeAndFlush(Unpooled.wrappedBuffer("/".toByteArray()))
-                        println(splitFile.toFile().length())
+                        println("start upload file: $localFile")
+                        println("fileSize: ${splitFile.toFile().length()}")
 
-                        writeAndFlush(
-                                DefaultFileRegion(splitFile.toFile(), 0, splitFile.toFile().length())
-                        )
+                        // writeAndFlush(
+                        //         DefaultFileRegion(splitFile.toFile(), 0, splitFile.toFile().length())
+                        // )
                     }
                 }
             }
         }
 
-        serverToFutureMap.values.forEach {
-            it.channel().closeFuture().sync()
-            NetUtil.shutdownGracefully(it)
-        }
+        // serverToFutureMap.values.forEach {
+        //     it.channel().closeFuture().sync()
+        //     NetUtil.shutdownGracefully(it)
+        // }
+    }
+
+    // remote_file with 0000001
+    fun doUpload(packet: FilePacket, channel: Channel) {
+        println("uploading...")
+        val name = localFile + packet.file.substringAfter(remoteFile)
+        channel.writeAndFlush(
+                DefaultFileRegion(RandomAccessFile(name, "rw").channel, 0, packet.fileLength))
+                // .addListener {
+                //     // this listener has is not called for unknown reason
+                //     ChannelFutureListener { future ->
+                //         run {
+                //             println(future.channel())
+                //             NetUtil.shutdownGracefully(future.channel())
+                //         }
+                //     }
+                // }
     }
 
     private fun getChannel(it: Server): ChannelFuture {
-        return NetUtil.connect(it.ip, it.port, ChunkedWriteHandler())
+        return NetUtil.connect(it.ip, it.port,
+                ChunkedWriteHandler(),
+                ClientCommandHandler())
     }
 }

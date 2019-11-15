@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
 
     future.channel().closeFuture().sync()
 
-    NetUtil.shutdownGracefully(future)
+    // NetUtil.shutdownGracefully(future.channel())
 }
 
 // }

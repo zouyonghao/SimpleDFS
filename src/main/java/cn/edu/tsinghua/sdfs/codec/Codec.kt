@@ -17,11 +17,11 @@ import io.netty.buffer.ByteBuf
 class Codec private constructor() {
 
     private val packetTypeMap = mapOf(
-            CREATE_REQUEST to CreateRequest::class.java,
-            LS to LsPacket::class.java,
-            RESULT to ResultToClient::class.java,
-            NAME_ITEM to NameItem::class.java,
-            FILE_PACKET to FilePacket::class.java
+            CREATE_REQUEST  to CreateRequest::class.java,
+            LS              to LsPacket::class.java,
+            RESULT          to ResultToClient::class.java,
+            NAME_ITEM       to NameItem::class.java,
+            FILE_PACKET     to FilePacket::class.java
     )
 
     fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {
@@ -43,7 +43,6 @@ class Codec private constructor() {
         val clazz = packetTypeMap[command] ?: throw NullPointerException("解析失败，没有该类型的数据包")
 
         return Serializer.DEFAULT.deserialize(bytes, clazz)
-
     }
 
     companion object {

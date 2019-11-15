@@ -2,6 +2,8 @@ package cn.edu.tsinghua.sdfs.client.handler
 
 import cn.edu.tsinghua.sdfs.codec.Codec
 import cn.edu.tsinghua.sdfs.exception.WrongCodecException
+import cn.edu.tsinghua.sdfs.io.NetUtil.shutdownGracefully
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.server.NameItem
 import io.netty.buffer.ByteBuf
@@ -26,10 +28,19 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
                 }
                 ctx.channel().close()
             }
+            // from slave server
+            is FilePacket -> {
+                FileUploader.doUpload(packet, ctx.channel())
+            }
             else -> {
                 println(packet)
                 ctx.channel().close()
             }
         }
+    }
+
+    override fun channelUnregistered(ctx: ChannelHandlerContext) {
+        super.channelUnregistered(ctx)
+        shutdownGracefully(ctx.channel())
     }
 }
