@@ -37,28 +37,41 @@ fun reduce(list: List<Int>) = list.reduce(operation = { a, b -> a + b })
     functions.apply {
         // add(Pair("map", splitFile as (Any) -> Any))
     }
+    val file = StringBuilder()
+    // (file as StringBuilder).append()
     engine.getBindings(ScriptContext.ENGINE_SCOPE).apply {
         put("functions", functions)
+        put("file", file)
     }
 
-
-    val mapFunc = engine.eval(
-"""
-val splitFile = { a: String -> a.split("\n") }
-val mapFunc = { a: List<String> -> a.map{ it.toInt() } }
-val reduce = { a: List<Int> -> a.reduce { i, j -> i + j } }
-(bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
-    add(Pair("map", splitFile as ((Any) -> Any)))
-    add(Pair("map", mapFunc as ((Any) -> Any)))
-    add(Pair("reduce", reduce as ((Any) -> Any)))
+    engine.eval("""
+fun sdfsMap(mapFunc: Any) {
+    (bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
+        add(Pair("map", mapFunc as ((Any) -> Any)))
+    }
 }
-mapFunc
+
+fun sdfsReduce(reduceFunc: Any) {
+    (bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
+        add(Pair("reduce", reduceFunc as ((Any) -> Any)))
+    }
+}
+
+fun sdfsRead(file: String) {
+    (bindings["file"] as StringBuilder).append(file)
+}
+    """)
+
+    engine.eval(
+            """
+                sdfsRead("1\n2\n444\n555")
+                sdfsMap({ a: String -> a.split("\n") })
+                sdfsMap({ a: List<String> -> a.map{ it.toInt() } })
+                sdfsReduce({ a: List<Int> -> a.reduce { i, j -> i + j } })
 """
-    ) as ((List<String>) -> List<Int>)
+    )
 
-    println(mapFunc(listOf("1", "23124")))
-
-    var lastResult: Any = "1\n2\n444\n666"
+    var lastResult = file.toString() as Any
     functions.forEach {
         println(it.first)
         lastResult = it.second(lastResult)
