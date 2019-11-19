@@ -1,10 +1,12 @@
-package cn.edu.tsinghua.sdfs.server.handler
+package cn.edu.tsinghua.sdfs.server.slave.handler
 
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
-import cn.edu.tsinghua.sdfs.server.DataManager
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
+import cn.edu.tsinghua.sdfs.server.slave.DataManager
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
@@ -71,6 +73,9 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
                 DataManager.deleteFile(packet.file)
                 Codec.writeAndFlushPacket(ctx.channel(), packet)
                 ctx.channel().close()
+            }
+            is UserProgram -> {
+                UserProgramManager.saveUserProgram(packet)
             }
         }
     }

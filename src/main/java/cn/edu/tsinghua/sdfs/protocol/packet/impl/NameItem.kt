@@ -7,6 +7,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 /**
  * {
  *  "fileSize": 1000 (bytes)
+ *  TODO: add server to each partitions
  *  "partitions": [
  *      [1, 3, 4], // partition1 in slave1,3,4
  *      [2, 4, 5]

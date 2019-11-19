@@ -40,7 +40,7 @@ object NetUtil {
         return future
     }
 
-    fun shutdownGracefully(channel:Channel) {
+    fun shutdownGracefully(channel:Channel?) {
         // println(channel)
         futureToGroupMap[channel]?.shutdownGracefully()
         futureToGroupMap.remove(channel)

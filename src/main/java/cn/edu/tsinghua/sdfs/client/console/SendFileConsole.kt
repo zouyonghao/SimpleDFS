@@ -59,6 +59,7 @@ object SendFileConsole {
                 Codec.writeAndFlushPacket(masterChannel,
                         UserProgram(UUID.randomUUID().toString(),
                                 String(Files.readAllBytes(Paths.get(localFile)))))
+                masterChannel.close()
             }
         }
     }

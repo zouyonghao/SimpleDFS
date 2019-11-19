@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.sdfs.server.handler
+package cn.edu.tsinghua.sdfs.server.master.handler
 
 import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.protocol.Codec
@@ -6,7 +6,10 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
-import cn.edu.tsinghua.sdfs.server.NameManager
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
+import cn.edu.tsinghua.sdfs.server.master.NameManager
+import cn.edu.tsinghua.sdfs.server.master.SlaveManager
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
@@ -31,7 +34,10 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
             is DownloadRequest -> {
                 Codec.writeAndFlushPacket(ctx.channel(), NameManager.getNameItemForDownload(packet.filePath))
             }
+            is UserProgram -> {
+                UserProgramManager.saveUserProgram(packet)
+                SlaveManager.uploadUserProgram(packet)
+            }
         }
-
     }
 }

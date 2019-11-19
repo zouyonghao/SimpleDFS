@@ -1,4 +1,4 @@
-package cn.edu.tsinghua.sdfs.server
+package cn.edu.tsinghua.sdfs.server.master
 
 import cn.edu.tsinghua.sdfs.Server
 import cn.edu.tsinghua.sdfs.config

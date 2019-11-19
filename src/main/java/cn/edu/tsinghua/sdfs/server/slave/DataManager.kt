@@ -1,13 +1,12 @@
-package cn.edu.tsinghua.sdfs.server
+package cn.edu.tsinghua.sdfs.server.slave
 
-import cn.edu.tsinghua.sdfs.config
 import java.io.RandomAccessFile
 import java.nio.file.Files
 import java.nio.file.Paths
 
 object DataManager {
 
-    private val ROOT_DIR = Paths.get(config.slaves[0].folder)
+    private val ROOT_DIR = Paths.get(slave.folder)
 
     init {
         if (Files.notExists(ROOT_DIR)) {
