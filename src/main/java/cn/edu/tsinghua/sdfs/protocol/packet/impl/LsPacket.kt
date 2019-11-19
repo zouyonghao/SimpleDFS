@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.sdfs.protocol.packet.impl
 
-import cn.edu.tsinghua.sdfs.protocol.command.Command
+import cn.edu.tsinghua.sdfs.protocol.Codec.LS
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 
 class LsPacket() : Packet {
@@ -11,6 +11,6 @@ class LsPacket() : Packet {
     var path = ""
 
     override val command: Int
-        get() = Command.LS
+        get() = LS
 
 }

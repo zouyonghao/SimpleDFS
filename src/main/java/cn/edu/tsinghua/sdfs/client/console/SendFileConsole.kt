@@ -6,23 +6,25 @@ import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import io.netty.channel.Channel
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.util.UUID
 
 object SendFileConsole {
 
     lateinit var localFile: String
     lateinit var remoteFile: String
-    lateinit var channel: Channel
+    lateinit var masterChannel: Channel
 
-    fun exec(channel: Channel, args: Array<String>) {
-        this.channel = channel
+    fun exec(masterChannel: Channel, args: Array<String>) {
+        this.masterChannel = masterChannel
         when (args[0]) {
             "ls" -> {
                 // println("ls command executing...")
-                Codec.writeAndFlushPacket(channel, LsPacket(args[1]))
-                // channel.close()
+                Codec.writeAndFlushPacket(masterChannel, LsPacket(args[1]))
+                // masterChannel.close()
             }
             "copyFromLocal" -> {
                 localFile = args[1]
@@ -31,7 +33,7 @@ object SendFileConsole {
                 FileUploader.remoteFile = remoteFile
                 if (Files.notExists(Paths.get(localFile))) {
                     println("local file not exist.")
-                    channel.close()
+                    masterChannel.close()
                     return
                 }
                 sendCreateRequest()
@@ -43,17 +45,27 @@ object SendFileConsole {
                 FileDownloader.remoteFile = remoteFile
                 if (Files.exists(Paths.get(localFile))) {
                     println("local file exist.")
-                    channel.close()
+                    masterChannel.close()
                     return
                 }
-                Codec.writeAndFlushPacket(channel, DownloadRequest(remoteFile))
+                Codec.writeAndFlushPacket(masterChannel, DownloadRequest(remoteFile))
+            }
+            "submit" -> {
+                localFile = args[1]
+                if (Files.notExists(Paths.get(localFile))) {
+                    masterChannel.close()
+                    error("File $localFile not exists.")
+                }
+                Codec.writeAndFlushPacket(masterChannel,
+                        UserProgram(UUID.randomUUID().toString(),
+                                String(Files.readAllBytes(Paths.get(localFile)))))
             }
         }
     }
 
     fun sendCreateRequest() {
         val createRequest = CreateRequest(localFile, remoteFile, Files.size(Paths.get(localFile)))
-        Codec.writeAndFlushPacket(channel, createRequest)
+        Codec.writeAndFlushPacket(masterChannel, createRequest)
     }
 
 }

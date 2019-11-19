@@ -33,10 +33,7 @@ fun reduce(list: List<Int>) = list.reduce(operation = { a, b -> a + b })
     }
 
     val functions = mutableListOf<Pair<String, (Any) -> Any>>()
-    val splitFile = { a: String -> a.split("\n") }
-    functions.apply {
-        // add(Pair("map", splitFile as (Any) -> Any))
-    }
+
     val file = StringBuilder()
     // (file as StringBuilder).append()
     engine.getBindings(ScriptContext.ENGINE_SCOPE).apply {

@@ -1,7 +1,7 @@
 package cn.edu.tsinghua.sdfs.protocol.packet.impl
 
 import cn.edu.tsinghua.sdfs.Server
-import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.RM_PARTITION
+import cn.edu.tsinghua.sdfs.protocol.Codec.RM_PARTITION
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 
 data class RmPartition(val file: String, val it: Server):Packet {

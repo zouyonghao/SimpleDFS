@@ -1,7 +1,7 @@
 package cn.edu.tsinghua.sdfs.protocol.packet.impl
 
 
-import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.CREATE_REQUEST
+import cn.edu.tsinghua.sdfs.protocol.Codec.CREATE_REQUEST
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 
 class CreateRequest() : Packet {

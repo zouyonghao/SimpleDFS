@@ -2,33 +2,11 @@ package cn.edu.tsinghua.sdfs.server
 
 import cn.edu.tsinghua.sdfs.Server
 import cn.edu.tsinghua.sdfs.config
-import cn.edu.tsinghua.sdfs.protocol.command.Command
-import cn.edu.tsinghua.sdfs.protocol.packet.Packet
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.serilizer.impl.JSONSerializer
 import com.alibaba.fastjson.JSON
 import java.nio.file.Files
 import java.nio.file.Paths
-
-/**
- * {
- *  "fileSize": 1000 (bytes)
- *  "partitions": [
- *      [1, 3, 4], // partition1 in slave1,3,4
- *      [2, 4, 5]
- *  ]
- * }
- */
-data class NameItem(
-        val fileLength: Long,
-        val partitions: MutableList<MutableList<Server>>,
-        val partitionSize: Long
-) : Packet {
-    override val command: Int
-        get() = Command.NAME_ITEM
-
-    var exist = false
-    var download = false
-}
 
 fun NameItem.toJsonString() = JSON.toJSONString(this)!!
 

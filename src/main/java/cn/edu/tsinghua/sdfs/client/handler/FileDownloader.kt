@@ -5,7 +5,7 @@ import cn.edu.tsinghua.sdfs.io.FileUtil
 import cn.edu.tsinghua.sdfs.io.NetUtil
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
-import cn.edu.tsinghua.sdfs.server.NameItem
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture

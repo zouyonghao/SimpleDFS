@@ -5,8 +5,8 @@ import cn.edu.tsinghua.sdfs.io.FileUtil
 import cn.edu.tsinghua.sdfs.io.NetUtil
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
-import cn.edu.tsinghua.sdfs.server.NameItem
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.DefaultFileRegion

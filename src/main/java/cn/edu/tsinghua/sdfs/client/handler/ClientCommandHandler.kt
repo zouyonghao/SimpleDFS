@@ -5,9 +5,9 @@ import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.io.NetUtil.shutdownGracefully
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
-import cn.edu.tsinghua.sdfs.server.NameItem
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
@@ -53,8 +53,8 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
 
             // delete success
             is RmPartition -> {
-                println("PartitionsDeleted: $partitionsDeleted")
-                println("PartitionsNeedDelete: $partitionsNeedDelete")
+                // println("PartitionsDeleted: $partitionsDeleted")
+                // println("PartitionsNeedDelete: $partitionsNeedDelete")
                 partitionsDeleted++
                 // TODO: check whether all partitions deleted
                 if (partitionsDeleted == partitionsNeedDelete) {

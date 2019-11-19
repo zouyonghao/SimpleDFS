@@ -1,6 +1,6 @@
 package cn.edu.tsinghua.sdfs.protocol.packet.impl
 
-import cn.edu.tsinghua.sdfs.protocol.command.Command.Companion.RESULT
+import cn.edu.tsinghua.sdfs.protocol.Codec.RESULT
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
 
 class ResultToClient() : Packet {
