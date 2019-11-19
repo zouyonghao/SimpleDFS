@@ -8,6 +8,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
+import cn.edu.tsinghua.sdfs.server.master.JobManager
 import cn.edu.tsinghua.sdfs.server.master.NameManager
 import cn.edu.tsinghua.sdfs.server.master.SlaveManager
 import io.netty.buffer.ByteBuf
@@ -36,7 +37,9 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
             }
             is UserProgram -> {
                 UserProgramManager.saveUserProgram(packet)
-                SlaveManager.uploadUserProgram(packet)
+                SlaveManager.uploadUserProgram(packet) {
+                    JobManager.startJob(packet)
+                }
             }
         }
     }

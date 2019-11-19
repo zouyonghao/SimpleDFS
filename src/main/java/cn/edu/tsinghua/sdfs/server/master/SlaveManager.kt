@@ -34,7 +34,7 @@ object SlaveManager {
                         e.printStackTrace()
                     }
                 } else {
-                    println("slave $server already connected.")
+                    // println("slave $server already connected.")
                 }
             }, 0, 5, TimeUnit.SECONDS)
         }
@@ -60,11 +60,20 @@ object SlaveManager {
         }
     }
 
-    fun uploadUserProgram(packet: UserProgram) {
+    fun uploadUserProgram(packet: UserProgram, listener: () -> Unit) {
         // TODO: add queue to each Slave in order to resume when slave down
+        var uploadCount = 0
+        var uploadedCount = 0
         slaveChannels.filter { it.ok() }.forEach {
             val channel = it.future!!.channel()
+            uploadCount++
             Codec.writeAndFlushPacket(channel, packet)
+                    .addListener {
+                        uploadedCount++
+                        if (uploadCount == uploadedCount) {
+                            listener.invoke()
+                        }
+                    }
         }
     }
 }

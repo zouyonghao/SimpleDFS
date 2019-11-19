@@ -13,6 +13,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
+import io.netty.channel.ChannelFuture
 
 object Codec {
 
@@ -66,8 +67,8 @@ object Codec {
         return Serializer.DEFAULT.deserialize(bytes, clazz)
     }
 
-    fun writeAndFlushPacket(channel: Channel, packet: Packet) {
-        channel.writeAndFlush(encode(channel.alloc().ioBuffer(), packet))
+    fun writeAndFlushPacket(channel: Channel, packet: Packet): ChannelFuture {
+        return channel.writeAndFlush(encode(channel.alloc().ioBuffer(), packet))
     }
 
 }
