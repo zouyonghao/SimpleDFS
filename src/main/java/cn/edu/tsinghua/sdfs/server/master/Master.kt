@@ -4,10 +4,12 @@ import cn.edu.tsinghua.sdfs.config
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
 import cn.edu.tsinghua.sdfs.server.master.handler.MasterCommandHandler
 import io.netty.bootstrap.ServerBootstrap
+import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import java.nio.file.Paths
 
 object Master {
@@ -28,6 +30,7 @@ object Master {
                     @Throws(Exception::class)
                     override fun initChannel(channel: NioSocketChannel) {
                         channel.pipeline()
+                                .addLast(DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())))
                                 .addLast("handler", MasterCommandHandler())
                     }
                 })

@@ -26,7 +26,6 @@ object JobTracker {
         jobExecutor.scheduleAtFixedRate({
             val jobNeedRemove = mutableListOf<Job>()
             jobMap.values.forEach {
-                it.jobContext.currentPc++
                 when (it.status) {
                     INIT -> it.status = RUNNING
                     RUNNING -> {
@@ -34,6 +33,7 @@ object JobTracker {
                             it.status = FINISHED
                             return@forEach
                         }
+                        it.jobContext.currentPc++
                         runCurrentFunc(it)
                     }
                     FAIL -> {

@@ -4,6 +4,9 @@ import cn.edu.tsinghua.sdfs.client.console.SendFileConsole
 import cn.edu.tsinghua.sdfs.client.handler.ClientCommandHandler
 import cn.edu.tsinghua.sdfs.config
 import cn.edu.tsinghua.sdfs.io.NetUtil
+import io.netty.buffer.Unpooled
+import io.netty.handler.codec.DelimiterBasedFrameDecoder
+
 
 object Client {
 
@@ -19,6 +22,7 @@ object Client {
         val future = NetUtil.connect(
                 config.master.ip,
                 config.master.port,
+                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())),
                 ClientCommandHandler())
         if (future.isSuccess) {
             // println("connect success!")

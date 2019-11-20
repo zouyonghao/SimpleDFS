@@ -8,7 +8,9 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.slave.DoMapPacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
 import cn.edu.tsinghua.sdfs.server.master.handler.MasterCommandHandler
+import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFuture
+import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -29,6 +31,7 @@ object SlaveManager {
                         future = NetUtil.connect(
                                 server.ip,
                                 server.port,
+                                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())),
                                 MasterCommandHandler())
                         connectionSuccess = true
                     } catch (e: Exception) {

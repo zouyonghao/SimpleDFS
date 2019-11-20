@@ -7,9 +7,11 @@ import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
+import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.DefaultFileRegion
+import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import io.netty.handler.stream.ChunkedWriteHandler
 import java.io.RandomAccessFile
 import java.nio.file.Path
@@ -78,6 +80,7 @@ object FileUploader {
     private fun getChannel(it: Server): ChannelFuture {
         return NetUtil.connect(it.ip, it.port,
                 ChunkedWriteHandler(),
+                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())),
                 ClientCommandHandler())
     }
 }

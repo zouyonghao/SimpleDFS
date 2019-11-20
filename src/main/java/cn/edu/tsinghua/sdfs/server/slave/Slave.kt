@@ -6,10 +6,12 @@ import cn.edu.tsinghua.sdfs.server.master.JobTracker
 import cn.edu.tsinghua.sdfs.server.slave.handler.SlaveCommandHandler
 import com.alibaba.fastjson.JSON
 import io.netty.bootstrap.ServerBootstrap
+import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
+import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import io.netty.handler.stream.ChunkedWriteHandler
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -33,6 +35,7 @@ fun main() {
                 override fun initChannel(channel: NioSocketChannel) {
                     channel.pipeline()
                             .addLast("streamer", ChunkedWriteHandler())
+                            .addLast(DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())))
                             .addLast("handler", SlaveCommandHandler())
                 }
             })
