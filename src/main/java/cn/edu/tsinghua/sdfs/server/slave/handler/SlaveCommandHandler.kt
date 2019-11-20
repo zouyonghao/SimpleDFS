@@ -5,6 +5,8 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.slave.DoMapPacket
+import cn.edu.tsinghua.sdfs.server.mapreduce.Mapper
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
 import cn.edu.tsinghua.sdfs.server.slave.DataManager
 import io.netty.buffer.ByteBuf
@@ -76,6 +78,9 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
             }
             is UserProgram -> {
                 UserProgramManager.saveUserProgram(packet)
+            }
+            is DoMapPacket -> {
+                Mapper.doMap(packet)
             }
         }
     }

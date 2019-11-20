@@ -10,6 +10,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.slave.DoMapPacket
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
@@ -19,12 +20,14 @@ object Codec {
 
     const val TYPE = 0x12345678
 
-    // command
-    const val CREATE_REQUEST = 1
-    const val LS = 2
     // do not support yet
     // const val CD = 3
     // const val PWD = 4
+
+    // client to master
+    const val CREATE_REQUEST = 1
+    const val LS = 2
+
     const val COPY_FROM_LOCAL = 5
     const val COPY_TO_LOCAL = 6
     const val RM = 7
@@ -35,6 +38,9 @@ object Codec {
     const val DOWNLOAD_REQUEST = 13
     const val USER_PROGRAM = 14
 
+    // master to slave
+    const val DO_MAP_ = 15
+
     private val packetTypeMap = mapOf(
             CREATE_REQUEST   to CreateRequest::class.java,
             LS               to LsPacket::class.java,
@@ -43,7 +49,8 @@ object Codec {
             FILE_PACKET      to FilePacket::class.java,
             RM_PARTITION     to RmPartition::class.java,
             DOWNLOAD_REQUEST to DownloadRequest::class.java,
-            USER_PROGRAM     to UserProgram::class.java
+            USER_PROGRAM     to UserProgram::class.java,
+            DO_MAP_          to DoMapPacket::class.java
     )
 
     fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {

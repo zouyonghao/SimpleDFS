@@ -2,6 +2,7 @@ package cn.edu.tsinghua.sdfs.server.slave
 
 import cn.edu.tsinghua.sdfs.Server
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
+import cn.edu.tsinghua.sdfs.server.master.JobTracker
 import cn.edu.tsinghua.sdfs.server.slave.handler.SlaveCommandHandler
 import com.alibaba.fastjson.JSON
 import io.netty.bootstrap.ServerBootstrap
@@ -18,6 +19,7 @@ val slave: Server = JSON.parseObject(Files.readAllBytes(Paths.get("slave.json"))
 fun main() {
 
     UserProgramManager.ROOT_DIR = Paths.get(slave.folder)
+    JobTracker.ROOT_DIR = Paths.get(slave.folder)
 
     val bootstrap = ServerBootstrap()
 

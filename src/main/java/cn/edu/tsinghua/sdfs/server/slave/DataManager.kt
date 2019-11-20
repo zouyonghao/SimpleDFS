@@ -2,6 +2,7 @@ package cn.edu.tsinghua.sdfs.server.slave
 
 import java.io.RandomAccessFile
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 object DataManager {
@@ -34,5 +35,13 @@ object DataManager {
         Files.createDirectories(dir)
 
         Files.deleteIfExists(localPath)
+    }
+
+    fun getFilePath(file: String, partition: Int): Path {
+        return Paths.get(ROOT_DIR.toString(), file, String.format("%07d", partition))
+    }
+
+    fun getFileAsString(localFilePath: Path): String {
+        return String(Files.readAllBytes(localFilePath))
     }
 }

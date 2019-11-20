@@ -19,7 +19,7 @@ object NameManager {
         }
     }
 
-    fun getNameItemForDownload(filePath: String): NameItem {
+    fun getNameItem(filePath: String): NameItem {
         val dir = Paths.get(ROOT_DIR.toString(), filePath)
         val item = Paths.get(dir.toAbsolutePath().toString(), "item.json")
 
@@ -56,7 +56,6 @@ object NameManager {
         val remainingBytes = fileSize % bytesPerSplit
 
         val nameItem = NameItem(fileSize, mutableListOf(), config.blockSize)
-
 
         for (i in 0 until numSplits) {
             allocateSlave(nameItem)

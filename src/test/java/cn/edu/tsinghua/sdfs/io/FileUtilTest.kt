@@ -3,6 +3,7 @@ package cn.edu.tsinghua.sdfs.io
 import org.jetbrains.kotlin.incremental.md5
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.parallel.Execution
 import org.junit.jupiter.api.parallel.ExecutionMode
@@ -50,5 +51,11 @@ internal class FileUtilTest {
         assertEquals(md5, Files.readAllBytes(Paths.get(TEST_FILE_MERGE)).md5())
 
         Files.deleteIfExists(Paths.get(TEST_FILE_MERGE))
+    }
+
+    @Disabled
+    @Test
+    fun testNumber() {
+        FileUtil.splitFile("test_file/numberFile", 1)
     }
 }

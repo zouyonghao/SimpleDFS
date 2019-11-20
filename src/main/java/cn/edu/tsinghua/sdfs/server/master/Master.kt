@@ -15,6 +15,7 @@ object Master {
     fun main(args: Array<String>) {
 
         UserProgramManager.ROOT_DIR = Paths.get(config.master.folder)
+        JobTracker.ROOT_DIR = Paths.get(config.master.folder)
 
         val bootstrap = ServerBootstrap()
 
