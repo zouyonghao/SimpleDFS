@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.sdfs.server.mapreduce
 
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import com.alibaba.fastjson.annotation.JSONField
 import java.util.UUID
 
 enum class JobStatus {
@@ -12,7 +13,8 @@ enum class JobStatus {
 }
 
 data class JobContext(val file: String,
-                      val functions: MutableList<Pair<String, (Any) -> Any>>,
+                      @JSONField(serialize = false)
+                      val functions: MutableList<Pair<String, (Any) -> Any>>?,
                       var currentPc: Int)
 
 data class Job(val id: String = UUID.randomUUID().toString(),

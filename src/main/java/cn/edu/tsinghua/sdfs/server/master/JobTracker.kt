@@ -30,7 +30,7 @@ object JobTracker {
                 when (it.status) {
                     INIT -> it.status = RUNNING
                     RUNNING -> {
-                        if (it.jobContext.currentPc >= it.jobContext.functions.size) {
+                        if (it.jobContext.currentPc >= it.jobContext.functions!!.size) {
                             it.status = FINISHED
                             return@forEach
                         }
@@ -70,7 +70,7 @@ object JobTracker {
     }
 
     private fun runCurrentFunc(job: Job) {
-        val pair = job.jobContext.functions[job.jobContext.currentPc]
+        val pair = job.jobContext.functions!![job.jobContext.currentPc]
         val type = pair.first
         when (type) {
             "map" -> {

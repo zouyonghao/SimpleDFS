@@ -25,20 +25,21 @@ object Mapper {
 
         val localFilePath = DataManager.getFilePath(job.jobContext.file, packet.partition)
         var lastResult = DataManager.getFileAsString(localFilePath) as Any
-
-        loop@ for (i in currentPc until job.jobContext.functions.size) {
+        val functions = job.jobContext.functions!!
+        loop@ for (i in currentPc until functions.size) {
             currentPc++
-            val type = job.jobContext.functions[i].first
-            val function = job.jobContext.functions[i].second
+            val type = functions[i].first
+            val function = functions[i].second
             val intermediateFiles = mutableListOf<RandomAccessFile>()
             when (type) {
                 "map" -> {
-                    lastResult = function.invoke(lastResult)
+                    println(lastResult.javaClass)
+                    lastResult = function(lastResult)
                     println(lastResult)
                 }
                 "shuffle" -> {
                     (lastResult as List<*>).forEach {
-                        val reducePartition = function.invoke(it!!) as Int
+                        val reducePartition = function(it!!) as Int
                         if (reducePartition >= intermediateFiles.size) {
                             intermediateFiles.add(getIntermediateFile(job, reducePartition))
                         }
