@@ -35,7 +35,7 @@ fun main() {
                 override fun initChannel(channel: NioSocketChannel) {
                     channel.pipeline()
                             .addLast("streamer", ChunkedWriteHandler())
-                            .addLast(DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())))
+                            .addLast(DelimiterBasedFrameDecoder(Int.MAX_VALUE, Unpooled.copiedBuffer("\r\n".toByteArray())))
                             .addLast("handler", SlaveCommandHandler())
                 }
             })
