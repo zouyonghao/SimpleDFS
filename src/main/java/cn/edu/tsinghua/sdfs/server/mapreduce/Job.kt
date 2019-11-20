@@ -19,6 +19,10 @@ data class JobContext(val file: String,
                       @JSONField(serialize = false)
                       val functions: MutableList<Pair<String, (Any) -> Any>>?,
                       var currentPc: Int) {
+    val mapper = mutableListOf<Server>()
+    val finishedMapper = mutableListOf<Server>()
+    val reducer = mutableListOf<Server>()
+    val finishedReducer = mutableListOf<Server>()
     // reduced partition to Map result
     var mapIntermediateFiles = mutableMapOf<Int, MutableSet<IntermediateFile>>()
 }

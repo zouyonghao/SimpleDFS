@@ -61,7 +61,7 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
                     println("all partitions deleted!")
                     SendFileConsole.sendCreateRequest()
                 }
-                ctx.channel().close()
+                // ctx.channel().close()
             }
 
             // create success

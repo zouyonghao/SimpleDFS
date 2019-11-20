@@ -30,8 +30,7 @@ object SlaveManager {
                         NetUtil.shutdownGracefully(future?.channel())
                         println("connecting to $server")
                         future = NetUtil.connect(
-                                server.ip,
-                                server.port,
+                                server,
                                 delimiterBasedFrameDecoder(),
                                 MasterCommandHandler())
                         connectionSuccess = true
@@ -83,9 +82,10 @@ object SlaveManager {
         }
     }
 
-    fun doMap(job: Job, slaves: MutableList<Server>, partition: Int): Server? {
+    fun doMap(job: Job, slaves: MutableList<Server>, filePartition: Int): Server? {
         val slave = slaveChannels.find { it.ok() && slaves.contains(it.server) } ?: return null
-        Codec.writeAndFlushPacket(slave.future!!.channel(), DoMapPacket(job, slave.server, partition))
+        Codec.writeAndFlushPacket(slave.future!!.channel(), DoMapPacket(job, slave.server, filePartition))
+        job.jobContext.mapper.add(slave.server)
         return slave.server
     }
 }

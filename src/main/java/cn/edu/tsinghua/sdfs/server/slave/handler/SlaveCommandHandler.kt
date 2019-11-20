@@ -75,7 +75,7 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
             is RmPartition -> {
                 DataManager.deleteFile(packet.file)
                 Codec.writeAndFlushPacket(ctx.channel(), packet)
-                ctx.channel().close()
+                // ctx.channel().close()
             }
             is UserProgram -> {
                 UserProgramManager.saveUserProgram(packet)

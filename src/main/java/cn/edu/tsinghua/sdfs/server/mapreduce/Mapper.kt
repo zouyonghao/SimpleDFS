@@ -11,7 +11,7 @@ import java.nio.file.Paths
 
 object Mapper {
 
-    val MAPPER_DIR = Paths.get(slave.folder, "__map__")
+    private val MAPPER_DIR = Paths.get(slave.folder, "__map__")
 
     init {
         if (Files.notExists(MAPPER_DIR)) {
@@ -41,15 +41,18 @@ object Mapper {
                     (lastResult as List<*>).forEach {
                         val reducePartition = function(it!!) as Int
                         val intermediateFilePath = getIntermediateFile(job, reducePartition)
-                        intermediateFiles.putIfAbsent(reducePartition,
-                                RandomAccessFile(intermediateFilePath.toFile(), "rw"))
+                        if (!intermediateFiles.containsKey(reducePartition)) {
+                            intermediateFiles.put(reducePartition,
+                                    RandomAccessFile(intermediateFilePath.toFile(), "rw"))
+                        }
                         intermediateFiles[reducePartition]!!.apply {
-                            println(it.javaClass)
+                            // println(it.javaClass)
                             write(it.toString().toByteArray())
                             write("\n".toByteArray())
                         }
-                        job.jobContext.mapIntermediateFiles.putIfAbsent(reducePartition,
-                                mutableSetOf())
+                        if (!job.jobContext.mapIntermediateFiles.containsKey(reducePartition)) {
+                            job.jobContext.mapIntermediateFiles.put(reducePartition, mutableSetOf())
+                        }
                         job.jobContext.mapIntermediateFiles[reducePartition]!!.add(
                                 IntermediateFile(packet.slave, intermediateFilePath.toString()))
                     }
@@ -62,7 +65,6 @@ object Mapper {
         }
 
         job.jobContext.currentPc = currentPc
-
     }
 
     private fun getIntermediateFile(job: Job, reducePartition: Int): Path {
@@ -70,6 +72,6 @@ object Mapper {
         if (Files.notExists(jobDir)) {
             Files.createDirectories(jobDir)
         }
-        return Paths.get(jobDir.toString(), reducePartition.toString())
+        return Paths.get(jobDir.toString(), String.format("%07d", reducePartition))
     }
 }

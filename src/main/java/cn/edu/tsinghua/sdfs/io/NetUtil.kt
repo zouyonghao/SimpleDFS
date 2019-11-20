@@ -1,5 +1,6 @@
 package cn.edu.tsinghua.sdfs.io
 
+import cn.edu.tsinghua.sdfs.Server
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
@@ -14,8 +15,14 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder
 object NetUtil {
 
     private val futureToGroupMap = mutableMapOf<Channel, NioEventLoopGroup>()
+    private val serverToChannelMap = mutableMapOf<Server, ChannelFuture>()
 
-    fun connect(ip: String, port: Int, vararg handlers: ChannelHandler): ChannelFuture {
+    fun connect(server: Server, vararg handlers: ChannelHandler): ChannelFuture {
+
+        if (serverToChannelMap.containsKey(server)) {
+            return serverToChannelMap[server]!!
+        }
+
         val bootstrap = Bootstrap()
 
         val group = NioEventLoopGroup()
@@ -34,15 +41,16 @@ object NetUtil {
                     }
                 })
 
-        val future = bootstrap.connect(ip, port).sync()
+        val future = bootstrap.connect(server.ip, server.port).sync()
         // shutdownGracefully(future.channel())
         // println(future.channel())
 
         futureToGroupMap[future.channel()] = group
+        serverToChannelMap[server] = future
         return future
     }
 
-    fun shutdownGracefully(channel:Channel?) {
+    fun shutdownGracefully(channel: Channel?) {
         // println(channel)
         futureToGroupMap[channel]?.shutdownGracefully()
         futureToGroupMap.remove(channel)

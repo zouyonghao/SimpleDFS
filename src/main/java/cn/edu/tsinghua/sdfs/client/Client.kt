@@ -19,8 +19,7 @@ object Client {
         }
 
         val future = NetUtil.connect(
-                config.master.ip,
-                config.master.port,
+                config.master,
                 delimiterBasedFrameDecoder(),
                 ClientCommandHandler())
         if (future.isSuccess) {

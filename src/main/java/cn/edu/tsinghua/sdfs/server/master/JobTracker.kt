@@ -80,22 +80,26 @@ object JobTracker {
                     println("running a map job with index $index on $slave")
                 }
             }
+            "reduce" -> {
+                println("reduce function should called.")
+            }
         }
         job.status = SUSPEND
     }
 
     fun mapFinished(packet: DoMapPacket) {
         jobMap[packet.job.id]?.apply {
-            packet.job.jobContext.mapIntermediateFiles.forEach{reducePartition, intermediateFiles ->
-                run {
-                    jobContext.mapIntermediateFiles.putIfAbsent(reducePartition, intermediateFiles)
-                    jobContext.mapIntermediateFiles[reducePartition]!!.addAll(intermediateFiles)
-                }
+            packet.job.jobContext.mapIntermediateFiles.forEach { (reducePartition, intermediateFiles) ->
+                jobContext.mapIntermediateFiles.putIfAbsent(reducePartition, intermediateFiles)
+                jobContext.mapIntermediateFiles[reducePartition]!!.addAll(intermediateFiles)
             }
 
+            jobContext.finishedMapper.add(packet.slave)
             println("partition ${packet.partition}")
-            if (NameManager.getNameItem(jobContext.file).partitions.size == jobContext.mapIntermediateFiles.size) {
-                println("all partition map finished!")
+            if (jobContext.finishedMapper.containsAll(jobContext.mapper)) {
+                println("all mapper finished!")
+                this.jobContext.currentPc = packet.job.jobContext.currentPc
+                this.status = RUNNING
             }
         }
     }

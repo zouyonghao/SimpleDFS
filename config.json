@@ -8,12 +8,12 @@
     {
       "ip": "localhost",
       "port": 6733,
-      "folder": "data_sdfs"
+      "folder": "data_sdfs1"
     },
     {
-      "ip": "192.168.0.101",
-      "port": 6733,
-      "folder": "data_sdfs"
+      "ip": "localhost",
+      "port": 6734,
+      "folder": "data_sdfs2"
     }
   ],
   "replication": 1,

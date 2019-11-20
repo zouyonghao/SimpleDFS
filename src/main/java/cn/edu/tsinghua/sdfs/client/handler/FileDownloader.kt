@@ -36,7 +36,7 @@ object FileDownloader {
     }
 
     private fun getChannel(it: Server, file: String): ChannelFuture {
-        return NetUtil.connect(it.ip, it.port,
+        return NetUtil.connect(it,
                 ChunkedWriteHandler(),
                 object : ChannelInboundHandlerAdapter() {
                     private var fileName: String = file

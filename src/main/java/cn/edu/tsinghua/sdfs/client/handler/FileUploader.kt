@@ -3,15 +3,14 @@ package cn.edu.tsinghua.sdfs.client.handler
 import cn.edu.tsinghua.sdfs.Server
 import cn.edu.tsinghua.sdfs.io.FileUtil
 import cn.edu.tsinghua.sdfs.io.NetUtil
+import cn.edu.tsinghua.sdfs.io.delimiterBasedFrameDecoder
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
-import io.netty.buffer.Unpooled
 import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.DefaultFileRegion
-import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import io.netty.handler.stream.ChunkedWriteHandler
 import java.io.RandomAccessFile
 import java.nio.file.Path
@@ -53,6 +52,7 @@ object FileUploader {
     fun doUpload(packet: FilePacket, channel: Channel) {
         val name = localFile + packet.file.substringAfter(remoteFile)
         channel.writeAndFlush(DefaultFileRegion(RandomAccessFile(name, "rw").channel, 0, packet.fileLength))
+                .addListener { NetUtil.shutdownGracefully(channel) }
     }
 
     fun deleteOld(packet: NameItem) {
@@ -78,9 +78,9 @@ object FileUploader {
     }
 
     private fun getChannel(it: Server): ChannelFuture {
-        return NetUtil.connect(it.ip, it.port,
+        return NetUtil.connect(it,
                 ChunkedWriteHandler(),
-                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("__\r\n__".toByteArray())),
+                delimiterBasedFrameDecoder(),
                 ClientCommandHandler())
     }
 }

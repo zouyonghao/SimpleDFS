@@ -15,10 +15,17 @@ import io.netty.handler.stream.ChunkedWriteHandler
 import java.nio.file.Files
 import java.nio.file.Paths
 
-val slave: Server = JSON.parseObject(Files.readAllBytes(Paths.get("slave.json")), Server::class.java)
+lateinit var slave: Server
 
-fun main() {
+fun main(args: Array<String>) {
 
+    val slaveConfig: String?
+    if (args.isNotEmpty()) {
+        slaveConfig = args[0]
+    } else {
+        slaveConfig = "slave.json"
+    }
+    slave = JSON.parseObject(Files.readAllBytes(Paths.get(slaveConfig)), Server::class.java)
     UserProgramManager.ROOT_DIR = Paths.get(slave.folder)
     JobTracker.ROOT_DIR = Paths.get(slave.folder)
 
