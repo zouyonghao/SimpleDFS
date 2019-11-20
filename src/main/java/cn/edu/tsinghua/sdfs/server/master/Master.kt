@@ -30,7 +30,7 @@ object Master {
                     @Throws(Exception::class)
                     override fun initChannel(channel: NioSocketChannel) {
                         channel.pipeline()
-                                .addLast(DelimiterBasedFrameDecoder(Integer.MAX_VALUE, Unpooled.copiedBuffer("\r\n".toByteArray())))
+                                .addLast(DelimiterBasedFrameDecoder(Integer.MAX_VALUE, Unpooled.copiedBuffer("__\r\n__".toByteArray())))
                                 .addLast("handler", MasterCommandHandler())
                     }
                 })

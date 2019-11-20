@@ -3,17 +3,19 @@ package cn.edu.tsinghua.sdfs.user.program
 import org.junit.jupiter.api.Test
 import javax.script.Invocable
 import javax.script.ScriptContext
+import javax.script.ScriptEngineManager
 
 internal class ScriptRunnerTest {
 
     @Test
     fun engineTest() {
-        ScriptRunner.engine.eval("println(\"hello world\")")
+        val engine = ScriptEngineManager().getEngineByExtension("kts")
+        engine.eval("println(\"hello world\")")
 
-        ScriptRunner.engine.eval("""
+        engine.eval("""
 fun reduce(list: List<Int>) = list.reduce(operation = { a, b -> a + b })
 """)
-        val invocable = ScriptRunner.engine as? Invocable
+        val invocable = engine as? Invocable
 
         val data = listOf(1, 2, 3, 4)
         val res = (invocable!!.invokeFunction("reduce", data)
@@ -23,11 +25,11 @@ fun reduce(list: List<Int>) = list.reduce(operation = { a, b -> a + b })
                 })
         println(res)
 
-        println(ScriptRunner.engine.eval("""
+        println(engine.eval("""
         "abc/number"
 """))
 
-        ScriptRunner.engine.getBindings(ScriptContext.ENGINE_SCOPE).apply {
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).apply {
             put("file", "1\n2\n3")
         }
 
@@ -35,12 +37,12 @@ fun reduce(list: List<Int>) = list.reduce(operation = { a, b -> a + b })
 
         val file = StringBuilder()
         // (file as StringBuilder).append()
-        ScriptRunner.engine.getBindings(ScriptContext.ENGINE_SCOPE).apply {
+        engine.getBindings(ScriptContext.ENGINE_SCOPE).apply {
             put("functions", functions)
             put("file", file)
         }
 
-        ScriptRunner.engine.eval("""
+        engine.eval("""
 fun sdfsMap(mapFunc: Any) {
     (bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
         add(Pair("map", mapFunc as ((Any) -> Any)))
@@ -64,7 +66,7 @@ fun sdfsRead(file: String) {
 }
     """)
 
-        ScriptRunner.engine.eval(
+        engine.eval(
                 """
                 sdfsRead("1\n2\n444\n555\n100001")
                 sdfsMap({ a: String -> a.split("\n") })

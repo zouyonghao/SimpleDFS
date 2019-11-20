@@ -22,7 +22,7 @@ object Client {
         val future = NetUtil.connect(
                 config.master.ip,
                 config.master.port,
-                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())),
+                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("__\r\n__".toByteArray())),
                 ClientCommandHandler())
         if (future.isSuccess) {
             // println("connect success!")

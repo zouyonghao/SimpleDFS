@@ -31,7 +31,7 @@ object SlaveManager {
                         future = NetUtil.connect(
                                 server.ip,
                                 server.port,
-                                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())),
+                                DelimiterBasedFrameDecoder(Int.MAX_VALUE, Unpooled.copiedBuffer("__\r\n__".toByteArray())),
                                 MasterCommandHandler())
                         connectionSuccess = true
                     } catch (e: Exception) {
@@ -74,6 +74,7 @@ object SlaveManager {
             uploadCount++
             Codec.writeAndFlushPacket(channel, packet)
                     .addListener {
+                        // println(uploadedCount)
                         uploadedCount++
                         if (uploadCount == uploadedCount) {
                             listener.invoke()

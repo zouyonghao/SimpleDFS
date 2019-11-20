@@ -2,14 +2,11 @@ package cn.edu.tsinghua.sdfs.user.program
 
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobContext
 import org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback
-import org.jetbrains.kotlin.script.jsr223.KotlinJsr223JvmLocalScriptEngine
 import javax.script.ScriptContext
 import javax.script.ScriptEngineManager
 
 object ScriptRunner {
-    val engine = ScriptEngineManager().getEngineByExtension("kts")!! as KotlinJsr223JvmLocalScriptEngine
-
-    const val INIT_SCRIPT = """
+    private const val INIT_SCRIPT = """
         fun sdfsMap(mapFunc: Any) {
             (bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
                 add(Pair("map", mapFunc as ((Any) -> Any)))
@@ -35,21 +32,24 @@ object ScriptRunner {
 
     init {
         setIdeaIoUseFallback()
-        engine.eval("")
-        engine.eval(INIT_SCRIPT)
     }
 
     fun compile(program: String): JobContext {
+
+        val engine = ScriptEngineManager().getEngineByExtension("kts")
+
         val functions = mutableListOf<Pair<String, (Any) -> Any>>()
 
         val file = StringBuilder()
         // (file as StringBuilder).append()
-        engine.getBindings(ScriptContext.ENGINE_SCOPE).apply {
+        val bindings = engine.createBindings().apply {
             put("functions", functions)
             put("file", file)
         }
+        engine.setBindings(bindings, ScriptContext.ENGINE_SCOPE)
+        engine.eval(INIT_SCRIPT)
 
-        engine.eval(program)
+        engine.eval(program, bindings)
 
         return JobContext(file.toString(), functions, -1)
     }

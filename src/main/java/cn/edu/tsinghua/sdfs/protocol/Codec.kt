@@ -59,7 +59,7 @@ object Codec {
         byteBuf.writeInt(packet.command)
         byteBuf.writeInt(bytes.size)
         byteBuf.writeBytes(bytes)
-        byteBuf.writeBytes("\r\n".toByteArray())
+        byteBuf.writeBytes("__\r\n__".toByteArray())
         return byteBuf
     }
 

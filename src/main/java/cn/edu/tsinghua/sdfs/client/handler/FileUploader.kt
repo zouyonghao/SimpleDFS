@@ -80,7 +80,7 @@ object FileUploader {
     private fun getChannel(it: Server): ChannelFuture {
         return NetUtil.connect(it.ip, it.port,
                 ChunkedWriteHandler(),
-                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("\r\n".toByteArray())),
+                DelimiterBasedFrameDecoder(8192, Unpooled.copiedBuffer("__\r\n__".toByteArray())),
                 ClientCommandHandler())
     }
 }
