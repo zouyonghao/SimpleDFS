@@ -1,6 +1,7 @@
 package cn.edu.tsinghua.sdfs.server.master
 
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FAIL
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FINISHED
@@ -71,8 +72,7 @@ object JobTracker {
 
     private fun runCurrentFunc(job: Job) {
         val pair = job.jobContext.functions!![job.jobContext.currentPc]
-        val type = pair.first
-        when (type) {
+        when (pair.first) {
             "map" -> {
                 val nameItem = NameManager.getNameItem(job.jobContext.file)
                 nameItem.partitions.forEachIndexed { index, slaves ->
@@ -82,5 +82,21 @@ object JobTracker {
             }
         }
         job.status = SUSPEND
+    }
+
+    fun mapFinished(packet: DoMapPacket) {
+        jobMap[packet.job.id]?.apply {
+            packet.job.jobContext.mapIntermediateFiles.forEach{reducePartition, intermediateFiles ->
+                run {
+                    jobContext.mapIntermediateFiles.putIfAbsent(reducePartition, intermediateFiles)
+                    jobContext.mapIntermediateFiles[reducePartition]!!.addAll(intermediateFiles)
+                }
+            }
+
+            println("partition ${packet.partition}")
+            if (NameManager.getNameItem(jobContext.file).partitions.size == jobContext.mapIntermediateFiles.size) {
+                println("all partition map finished!")
+            }
+        }
     }
 }

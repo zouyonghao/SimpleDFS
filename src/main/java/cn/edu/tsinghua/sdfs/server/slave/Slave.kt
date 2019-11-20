@@ -1,17 +1,16 @@
 package cn.edu.tsinghua.sdfs.server.slave
 
 import cn.edu.tsinghua.sdfs.Server
+import cn.edu.tsinghua.sdfs.io.delimiterBasedFrameDecoder
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
 import cn.edu.tsinghua.sdfs.server.master.JobTracker
 import cn.edu.tsinghua.sdfs.server.slave.handler.SlaveCommandHandler
 import com.alibaba.fastjson.JSON
 import io.netty.bootstrap.ServerBootstrap
-import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
-import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import io.netty.handler.stream.ChunkedWriteHandler
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -35,7 +34,7 @@ fun main() {
                 override fun initChannel(channel: NioSocketChannel) {
                     channel.pipeline()
                             .addLast("streamer", ChunkedWriteHandler())
-                            .addLast("delimiter", DelimiterBasedFrameDecoder(Int.MAX_VALUE, Unpooled.copiedBuffer("__\r\n__".toByteArray())))
+                            .addLast("delimiter", delimiterBasedFrameDecoder())
                             .addLast("handler", SlaveCommandHandler())
                 }
             })

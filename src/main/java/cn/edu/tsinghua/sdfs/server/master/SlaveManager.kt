@@ -3,20 +3,21 @@ package cn.edu.tsinghua.sdfs.server.master
 import cn.edu.tsinghua.sdfs.Server
 import cn.edu.tsinghua.sdfs.config
 import cn.edu.tsinghua.sdfs.io.NetUtil
+import cn.edu.tsinghua.sdfs.io.delimiterBasedFrameDecoder
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.slave.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
 import cn.edu.tsinghua.sdfs.server.master.handler.MasterCommandHandler
-import io.netty.buffer.Unpooled
 import io.netty.channel.ChannelFuture
-import io.netty.handler.codec.DelimiterBasedFrameDecoder
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 object SlaveManager {
 
     private val executor = Executors.newSingleThreadScheduledExecutor()
+
+    private val slaveChannels = mutableListOf<Slave>()
 
     data class Slave(val server: Server,
                      var future: ChannelFuture?,
@@ -31,7 +32,7 @@ object SlaveManager {
                         future = NetUtil.connect(
                                 server.ip,
                                 server.port,
-                                DelimiterBasedFrameDecoder(Int.MAX_VALUE, Unpooled.copiedBuffer("__\r\n__".toByteArray())),
+                                delimiterBasedFrameDecoder(),
                                 MasterCommandHandler())
                         connectionSuccess = true
                     } catch (e: Exception) {
@@ -44,12 +45,11 @@ object SlaveManager {
             }, 0, 5, TimeUnit.SECONDS)
         }
 
+        // TODO: fail if first connect success but fail later
         fun ok(): Boolean {
             return connectionSuccess && future?.isSuccess ?: false
         }
     }
-
-    val slaveChannels = mutableListOf<Slave>()
 
     fun initSlaveConnections() {
         config.slaves.forEach {
@@ -85,7 +85,7 @@ object SlaveManager {
 
     fun doMap(job: Job, slaves: MutableList<Server>, partition: Int): Server? {
         val slave = slaveChannels.find { it.ok() && slaves.contains(it.server) } ?: return null
-        Codec.writeAndFlushPacket(slave.future!!.channel(), DoMapPacket(job, partition))
+        Codec.writeAndFlushPacket(slave.future!!.channel(), DoMapPacket(job, slave.server, partition))
         return slave.server
     }
 }

@@ -7,6 +7,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
 import cn.edu.tsinghua.sdfs.server.master.JobTracker
 import cn.edu.tsinghua.sdfs.server.master.NameManager
@@ -40,6 +41,9 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
                 SlaveManager.uploadUserProgram(packet) {
                     JobTracker.startJob(packet)
                 }
+            }
+            is DoMapPacket -> {
+                JobTracker.mapFinished(packet)
             }
         }
     }

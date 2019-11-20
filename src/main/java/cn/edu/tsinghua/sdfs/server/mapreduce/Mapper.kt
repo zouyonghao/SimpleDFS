@@ -1,11 +1,12 @@
 package cn.edu.tsinghua.sdfs.server.mapreduce
 
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.slave.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.server.slave.DataManager
 import cn.edu.tsinghua.sdfs.server.slave.slave
 import cn.edu.tsinghua.sdfs.user.program.ScriptRunner
 import java.io.RandomAccessFile
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 
 object Mapper {
@@ -29,7 +30,7 @@ object Mapper {
         loop@ for (i in currentPc until functions.size) {
             val type = functions[i].first
             val function = functions[i].second
-            val intermediateFiles = mutableListOf<RandomAccessFile>()
+            val intermediateFiles = mutableMapOf<Int, RandomAccessFile>()
             when (type) {
                 "map" -> {
                     println(lastResult.javaClass)
@@ -39,16 +40,20 @@ object Mapper {
                 "shuffle" -> {
                     (lastResult as List<*>).forEach {
                         val reducePartition = function(it!!) as Int
-                        if (reducePartition >= intermediateFiles.size) {
-                            intermediateFiles.add(getIntermediateFile(job, reducePartition))
-                        }
-                        intermediateFiles[reducePartition].apply {
+                        val intermediateFilePath = getIntermediateFile(job, reducePartition)
+                        intermediateFiles.putIfAbsent(reducePartition,
+                                RandomAccessFile(intermediateFilePath.toFile(), "rw"))
+                        intermediateFiles[reducePartition]!!.apply {
+                            println(it.javaClass)
                             write(it.toString().toByteArray())
                             write("\n".toByteArray())
                         }
-
+                        job.jobContext.mapIntermediateFiles.putIfAbsent(reducePartition,
+                                mutableSetOf())
+                        job.jobContext.mapIntermediateFiles[reducePartition]!!.add(
+                                IntermediateFile(packet.slave, intermediateFilePath.toString()))
                     }
-                    currentPc++
+                    break@loop
                 }
                 else -> {
                     break@loop
@@ -56,16 +61,15 @@ object Mapper {
             }
         }
 
-        job.jobContext.currentPc = currentPc - 1
+        job.jobContext.currentPc = currentPc
 
     }
 
-    fun getIntermediateFile(job: Job, reducePartition: Int): RandomAccessFile {
+    private fun getIntermediateFile(job: Job, reducePartition: Int): Path {
         val jobDir = Paths.get(MAPPER_DIR.toString(), job.id)
         if (Files.notExists(jobDir)) {
             Files.createDirectories(jobDir)
         }
-        val reducePartitionFile = Paths.get(jobDir.toString(), reducePartition.toString())
-        return RandomAccessFile(reducePartitionFile.toString(), "rw")
+        return Paths.get(jobDir.toString(), reducePartition.toString())
     }
 }

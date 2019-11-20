@@ -10,7 +10,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.slave.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
