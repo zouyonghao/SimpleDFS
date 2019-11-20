@@ -14,8 +14,8 @@ object FileUtil {
      * Split a file into multiples files.
      * TODO: this method may cut a line
      *
-     * @param fileName   Name of file to be split.
-     * @param splitSize maximum number of MB per file.
+     * @param fileName      Name of file to be split.
+     * @param splitSize     Maximum number of MB per file.
      * @throws IOException
      */
     @Throws(IOException::class)

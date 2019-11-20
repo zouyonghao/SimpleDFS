@@ -9,8 +9,13 @@
       "ip": "localhost",
       "port": 6733,
       "folder": "data_sdfs"
+    },
+    {
+      "ip": "192.168.0.101",
+      "port": 6733,
+      "folder": "data_sdfs"
     }
   ],
   "replication": 1,
-  "blockSize": 30
+  "blockSize": 3
 }

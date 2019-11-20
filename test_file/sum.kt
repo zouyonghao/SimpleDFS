@@ -1,4 +1,4 @@
-sdfsRead("numberFile")
+sdfsRead("abc/numberFile")
 sdfsMap({ a: String -> a.split("\n") })
 sdfsMap({ a: List<String> -> a.map{ it.toInt() } })
 sdfsShuffle { a:Int -> a / 10000 }

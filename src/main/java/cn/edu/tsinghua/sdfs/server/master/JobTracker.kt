@@ -9,7 +9,6 @@ import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.RUNNING
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.SUSPEND
 import cn.edu.tsinghua.sdfs.user.program.ScriptRunner
 import java.nio.file.Path
-import java.util.UUID
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -50,7 +49,7 @@ object JobTracker {
     }
 
     fun startJob(userProgram: UserProgram) {
-        val job = Job(UUID.randomUUID().toString(), userProgram, INIT)
+        val job = Job(userProgram.id, userProgram, INIT)
         job.jobContext = ScriptRunner.compile(userProgram.content)
         submitJob(job)
     }

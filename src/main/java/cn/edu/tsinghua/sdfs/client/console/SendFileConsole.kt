@@ -56,9 +56,11 @@ object SendFileConsole {
                     masterChannel.close()
                     error("File $localFile not exists.")
                 }
+                val uuid = UUID.randomUUID().toString()
                 Codec.writeAndFlushPacket(masterChannel,
-                        UserProgram(UUID.randomUUID().toString(),
+                        UserProgram(uuid,
                                 String(Files.readAllBytes(Paths.get(localFile)))))
+                println("script uuid: $uuid")
                 masterChannel.close()
             }
         }

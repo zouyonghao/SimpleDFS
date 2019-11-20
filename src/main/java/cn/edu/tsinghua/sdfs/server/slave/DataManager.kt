@@ -38,7 +38,7 @@ object DataManager {
     }
 
     fun getFilePath(file: String, partition: Int): Path {
-        return Paths.get(ROOT_DIR.toString(), file, String.format("%07d", partition))
+        return Paths.get(ROOT_DIR.toString(), file + String.format("%07d", partition))
     }
 
     fun getFileAsString(localFilePath: Path): String {

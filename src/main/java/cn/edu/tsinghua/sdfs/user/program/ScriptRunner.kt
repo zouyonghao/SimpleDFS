@@ -20,6 +20,12 @@ object ScriptRunner {
                 add(Pair("map", mapFunc as ((Any) -> Any)))
             }
         }
+
+        fun sdfsShuffle(shuffleFunc: Any) {
+            (bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
+                add(Pair("shuffle", shuffleFunc as ((Any) -> Any)))
+            }
+        }
         
         fun sdfsReduce(reduceFunc: Any) {
             (bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
