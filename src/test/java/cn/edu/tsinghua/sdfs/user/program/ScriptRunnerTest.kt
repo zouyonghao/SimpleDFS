@@ -83,6 +83,7 @@ fun sdfsRead(file: String) {
                     println(function.invoke(it))
                 }
             } else {
+                println(lastResult.javaClass)
                 lastResult = it.second(lastResult)
                 println(lastResult)
             }

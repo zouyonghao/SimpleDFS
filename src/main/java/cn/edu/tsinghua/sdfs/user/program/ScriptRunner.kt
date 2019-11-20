@@ -9,11 +9,6 @@ import javax.script.ScriptEngineManager
 object ScriptRunner {
     val engine = ScriptEngineManager().getEngineByExtension("kts")!! as KotlinJsr223JvmLocalScriptEngine
 
-    init {
-        setIdeaIoUseFallback()
-        engine.eval("")
-    }
-
     const val INIT_SCRIPT = """
         fun sdfsMap(mapFunc: Any) {
             (bindings["functions"] as MutableList<Pair<String, (Any) -> Any>>).apply {
@@ -38,6 +33,12 @@ object ScriptRunner {
         }
     """
 
+    init {
+        setIdeaIoUseFallback()
+        engine.eval("")
+        engine.eval(INIT_SCRIPT)
+    }
+
     fun compile(program: String): JobContext {
         val functions = mutableListOf<Pair<String, (Any) -> Any>>()
 
@@ -47,8 +48,6 @@ object ScriptRunner {
             put("functions", functions)
             put("file", file)
         }
-
-        engine.eval(INIT_SCRIPT)
 
         engine.eval(program)
 

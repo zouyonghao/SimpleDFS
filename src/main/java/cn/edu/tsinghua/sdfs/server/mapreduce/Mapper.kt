@@ -27,7 +27,6 @@ object Mapper {
         var lastResult = DataManager.getFileAsString(localFilePath) as Any
         val functions = job.jobContext.functions!!
         loop@ for (i in currentPc until functions.size) {
-            currentPc++
             val type = functions[i].first
             val function = functions[i].second
             val intermediateFiles = mutableListOf<RandomAccessFile>()
@@ -35,7 +34,7 @@ object Mapper {
                 "map" -> {
                     println(lastResult.javaClass)
                     lastResult = function(lastResult)
-                    println(lastResult)
+                    currentPc++
                 }
                 "shuffle" -> {
                     (lastResult as List<*>).forEach {
@@ -49,6 +48,7 @@ object Mapper {
                         }
 
                     }
+                    currentPc++
                 }
                 else -> {
                     break@loop
