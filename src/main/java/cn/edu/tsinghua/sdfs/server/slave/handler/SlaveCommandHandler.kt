@@ -52,6 +52,7 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
                 this@SlaveCommandHandler.fileLength = packet.fileLength
                 this@SlaveCommandHandler.fileName = packet.file
                 randomAccessFile = DataManager.deleteAndCreate(packet.file)
+                ctx.pipeline().remove("delimiter")
                 // fix TCP packet here
                 // TODO: better solution
                 // if (byteBuf.readableBytes() > 0) {
