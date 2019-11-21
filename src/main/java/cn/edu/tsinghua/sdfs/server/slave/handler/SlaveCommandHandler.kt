@@ -6,7 +6,9 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.Mapper
+import cn.edu.tsinghua.sdfs.server.mapreduce.Reducer
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
 import cn.edu.tsinghua.sdfs.server.slave.DataManager
 import io.netty.buffer.ByteBuf
@@ -82,6 +84,11 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
             }
             is DoMapPacket -> {
                 Mapper.doMap(packet)
+                Codec.writeAndFlushPacket(ctx.channel(), packet)
+            }
+            is DoReducePacket -> {
+                println(packet)
+                Reducer.doReduce(packet)
                 Codec.writeAndFlushPacket(ctx.channel(), packet)
             }
         }

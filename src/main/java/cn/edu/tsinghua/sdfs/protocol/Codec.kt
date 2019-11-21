@@ -2,15 +2,9 @@ package cn.edu.tsinghua.sdfs.protocol
 
 import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.*
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
 import io.netty.buffer.ByteBuf
 import io.netty.channel.Channel
@@ -40,6 +34,7 @@ object Codec {
 
     // master to slave
     const val DO_MAP_ = 15
+    const val DO_REDUCE_ = 16
 
     private val packetTypeMap = mapOf(
             CREATE_REQUEST   to CreateRequest::class.java,
@@ -50,10 +45,11 @@ object Codec {
             RM_PARTITION     to RmPartition::class.java,
             DOWNLOAD_REQUEST to DownloadRequest::class.java,
             USER_PROGRAM     to UserProgram::class.java,
-            DO_MAP_          to DoMapPacket::class.java
+            DO_MAP_          to DoMapPacket::class.java,
+            DO_REDUCE_       to DoReducePacket::class.java
     )
 
-    fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {
+    private fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {
         val bytes = Serializer.DEFAULT.serialize(packet)
         byteBuf.writeInt(TYPE)
         byteBuf.writeInt(packet.command)

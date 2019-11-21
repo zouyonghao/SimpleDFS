@@ -7,6 +7,8 @@ import cn.edu.tsinghua.sdfs.io.delimiterBasedFrameDecoder
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
+import cn.edu.tsinghua.sdfs.server.mapreduce.IntermediateFile
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
 import cn.edu.tsinghua.sdfs.server.master.handler.MasterCommandHandler
 import io.netty.channel.ChannelFuture
@@ -86,6 +88,13 @@ object SlaveManager {
         val slave = slaveChannels.find { it.ok() && slaves.contains(it.server) } ?: return null
         Codec.writeAndFlushPacket(slave.future!!.channel(), DoMapPacket(job, slave.server, filePartition))
         job.jobContext.mapper.add(slave.server)
+        return slave.server
+    }
+
+    fun doReduce(job: Job, reducePartition: Int, intermediateFiles: MutableSet<IntermediateFile>): Server? {
+        val slave = slaveChannels.find { it.ok() } ?: return null
+        Codec.writeAndFlushPacket(slave.future!!.channel(), DoReducePacket(job, slave.server, reducePartition, intermediateFiles))
+        job.jobContext.reducer.add(slave.server)
         return slave.server
     }
 }

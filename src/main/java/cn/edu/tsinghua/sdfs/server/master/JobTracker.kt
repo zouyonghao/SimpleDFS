@@ -3,11 +3,7 @@ package cn.edu.tsinghua.sdfs.server.master
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
-import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FAIL
-import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FINISHED
-import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.INIT
-import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.RUNNING
-import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.SUSPEND
+import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.*
 import cn.edu.tsinghua.sdfs.user.program.ScriptRunner
 import java.nio.file.Path
 import java.util.concurrent.Executors
@@ -82,6 +78,14 @@ object JobTracker {
             }
             "reduce" -> {
                 println("reduce function should called.")
+                if (job.jobContext.mapIntermediateFiles.isEmpty()) {
+                    // TODO: support reduce first
+                }
+
+                job.jobContext.mapIntermediateFiles.forEach { (reducePartition, files) ->
+                    val slave = SlaveManager.doReduce(job, reducePartition, files)
+                    println("running a reduce job with index $reducePartition on $slave")
+                }
             }
         }
         job.status = SUSPEND

@@ -30,7 +30,6 @@ object FileDownloader {
                 val name = remoteFile + String.format("%07d", index)
                 val future: ChannelFuture = getChannel(partition.random(), localFile + String.format("%07d", index))
                 Codec.writeAndFlushPacket(future.channel(), DownloadRequest(name))
-
             }
         }
     }
