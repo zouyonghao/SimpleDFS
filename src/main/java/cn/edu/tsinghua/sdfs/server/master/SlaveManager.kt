@@ -14,6 +14,7 @@ import cn.edu.tsinghua.sdfs.server.master.handler.MasterCommandHandler
 import io.netty.channel.ChannelFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 object SlaveManager {
 
@@ -68,16 +69,15 @@ object SlaveManager {
 
     fun uploadUserProgram(packet: UserProgram, listener: () -> Unit) {
         // TODO("add queue to each Slave in order to resume when slave down")
-        var uploadCount = 0
-        var uploadedCount = 0
-        slaveChannels.filter { it.ok() }.forEach {
+        val uploadedCount = AtomicInteger(0)
+        val okSlaveChannels = slaveChannels.filter { it.ok() }
+        val uploadCount = okSlaveChannels.count()
+        okSlaveChannels.forEach {
             val channel = it.future!!.channel()
-            uploadCount++
             Codec.writeAndFlushPacket(channel, packet)
                     .addListener {
-                        // println(uploadedCount)
-                        uploadedCount++
-                        if (uploadCount == uploadedCount) {
+                        println("upload user program success")
+                        if (uploadCount == uploadedCount.incrementAndGet()) {
                             listener.invoke()
                         }
                     }

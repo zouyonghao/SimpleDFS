@@ -49,6 +49,7 @@ class IntermediateFileDownloader {
                     }
 
                     override fun channelUnregistered(ctx: ChannelHandlerContext) {
+                        println("download $localFile finished")
                         ctx.channel().close()
                         randomAccessFile.close()
                         countDownLatch.countDown()

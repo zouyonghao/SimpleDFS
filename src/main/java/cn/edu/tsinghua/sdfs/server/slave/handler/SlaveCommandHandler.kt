@@ -84,6 +84,7 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
                 // ctx.channel().close()
             }
             is UserProgram -> {
+                println("receive user program ${packet.id}")
                 UserProgramManager.saveUserProgram(packet)
             }
             is DoMapPacket -> {

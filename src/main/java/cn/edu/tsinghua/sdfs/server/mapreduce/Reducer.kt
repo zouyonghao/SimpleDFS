@@ -18,8 +18,11 @@ object Reducer {
     }
 
     fun doReduce(packet: DoReducePacket) {
+
         // 1. retrieve intermediate file from other slaves
+
         val countDownLatch = CountDownLatch(packet.intermediateFiles.size)
+
         println("downloading intermediate files...")
         val reducePartitions = mutableListOf<String>()
         packet.intermediateFiles.forEachIndexed { index, intermediateFile ->
@@ -40,9 +43,13 @@ object Reducer {
         // FileUtil.mergeFiles()
 
         // 2. run reduce func
+
         val job = packet.job
         val currentPc = job.jobContext.currentPc
         job.jobContext = ScriptRunner.compile(job.userProgram.content)
+
+        val reduceResultFiles = mutableSetOf<IntermediateFile>()
+
         job.jobContext.currentPc = currentPc
         val pair = job.jobContext.functions!![currentPc]
         val type = pair.first
@@ -61,6 +68,7 @@ object Reducer {
 
                     // each intermediate file have a result file, which should be merged
                     Files.write(Paths.get("$partition.result"), lastResult.toString().toByteArray())
+                    reduceResultFiles.add(IntermediateFile(packet.server, "$partition.result"))
                 }
                 else -> {
                     println("Unsupport type yet $reduceParamType")
@@ -68,6 +76,7 @@ object Reducer {
             }
         }
 
+        job.jobContext.reduceResultFiles[packet.filePartition] = reduceResultFiles
         job.jobContext.currentPc++
     }
 }

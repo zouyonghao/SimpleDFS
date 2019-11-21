@@ -25,6 +25,7 @@ data class JobContext(val file: String,
     val finishedReducer = mutableListOf<Server>()
     // reduced partition to Map result
     var mapIntermediateFiles = mutableMapOf<Int, MutableSet<IntermediateFile>>()
+    var reduceResultFiles = mutableMapOf<Int, MutableSet<IntermediateFile>>()
 }
 
 data class Job(val id: String = UUID.randomUUID().toString(),

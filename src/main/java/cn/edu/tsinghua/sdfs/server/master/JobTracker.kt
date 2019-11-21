@@ -10,53 +10,67 @@ import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.INIT
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.RUNNING
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.SUSPEND
 import cn.edu.tsinghua.sdfs.user.program.ScriptRunner
+import com.alibaba.fastjson.JSON
+import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
 object JobTracker {
     lateinit var ROOT_DIR: Path
 
-    // TODO: save job state to disk
     private const val userProgramDir = "__job__"
 
-    val jobMap = mutableMapOf<String, Job>()
+    private val jobMap = mutableMapOf<String, Job>()
 
     private val jobExecutor = Executors.newScheduledThreadPool(1)
 
     init {
         jobExecutor.scheduleAtFixedRate({
-            val jobNeedRemove = mutableListOf<Job>()
-            jobMap.values.forEach {
-                when (it.status) {
-                    INIT -> it.status = RUNNING
-                    RUNNING -> {
-                        if (it.jobContext.currentPc >= it.jobContext.functions!!.size) {
-                            it.status = FINISHED
-                            return@forEach
+            try {
+                val jobNeedRemove = mutableListOf<Job>()
+                jobMap.values.forEach {
+                    println("job ${it.id} status is ${it.status}")
+                    when (it.status) {
+                        INIT -> {
+                            it.status = RUNNING
                         }
-                        it.jobContext.currentPc++
-                        runCurrentFunc(it)
+                        RUNNING -> {
+                            if (it.jobContext.currentPc >= it.jobContext.functions!!.size) {
+                                it.status = FINISHED
+                                return@forEach
+                            }
+                            it.jobContext.currentPc++
+                            runCurrentFunc(it)
+                        }
+                        FAIL -> {
+                            println("Job $it failed.")
+                            jobNeedRemove.add(it)
+                        }
+                        FINISHED -> jobNeedRemove.add(it)
+                        SUSPEND -> {
+                            // println("job still suspend")
+                        }
                     }
-                    FAIL -> {
-                        println("Job $it failed.")
-                        jobNeedRemove.add(it)
-                    }
-                    FINISHED -> jobNeedRemove.add(it)
-                    SUSPEND -> println("job still suspend")
+                    saveJob(it)
                 }
+                jobMap.values.removeAll(jobNeedRemove)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-            jobMap.values.removeAll(jobNeedRemove)
         }, 0, 3, TimeUnit.SECONDS)
     }
 
     fun startJob(userProgram: UserProgram) {
+        println("start job ${userProgram.id}")
         val job = Job(userProgram.id, userProgram, INIT)
         job.jobContext = ScriptRunner.compile(userProgram.content)
         submitJob(job)
     }
 
     private fun submitJob(job: Job) {
+        println("submit job ${job.id}")
         if (job.jobContext.file.isEmpty()) {
             println("No file specified in script ${job.userProgram.id}, exit")
             job.status = FAIL
@@ -114,9 +128,9 @@ object JobTracker {
 
     fun reduceFinished(packet: DoReducePacket) {
         jobMap[packet.job.id]?.apply {
-            packet.job.jobContext.mapIntermediateFiles.forEach { (reducePartition, intermediateFiles) ->
-                jobContext.mapIntermediateFiles.putIfAbsent(reducePartition, intermediateFiles)
-                jobContext.mapIntermediateFiles[reducePartition]!!.addAll(intermediateFiles)
+            packet.job.jobContext.reduceResultFiles.forEach { (reducePartition, intermediateFiles) ->
+                jobContext.reduceResultFiles.putIfAbsent(reducePartition, intermediateFiles)
+                jobContext.reduceResultFiles[reducePartition]!!.addAll(intermediateFiles)
             }
 
             jobContext.finishedReducer.add(packet.server)
@@ -126,5 +140,13 @@ object JobTracker {
                 this.status = RUNNING
             }
         }
+    }
+
+    fun saveJob(job: Job) {
+        val path = Paths.get(ROOT_DIR.toString(), userProgramDir)
+        if (Files.notExists(path)) {
+            Files.createDirectories(path)
+        }
+        Files.write(Paths.get(path.toString(), "${job.id}.json"), JSON.toJSONBytes(job))
     }
 }
