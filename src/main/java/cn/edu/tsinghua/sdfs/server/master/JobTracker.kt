@@ -2,8 +2,13 @@ package cn.edu.tsinghua.sdfs.server.master
 
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
-import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.*
+import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FAIL
+import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FINISHED
+import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.INIT
+import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.RUNNING
+import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.SUSPEND
 import cn.edu.tsinghua.sdfs.user.program.ScriptRunner
 import java.nio.file.Path
 import java.util.concurrent.Executors
@@ -77,7 +82,6 @@ object JobTracker {
                 }
             }
             "reduce" -> {
-                println("reduce function should called.")
                 if (job.jobContext.mapIntermediateFiles.isEmpty()) {
                     // TODO: support reduce first
                 }
@@ -102,6 +106,22 @@ object JobTracker {
             println("partition ${packet.partition}")
             if (jobContext.finishedMapper.containsAll(jobContext.mapper)) {
                 println("all mapper finished!")
+                this.jobContext.currentPc = packet.job.jobContext.currentPc
+                this.status = RUNNING
+            }
+        }
+    }
+
+    fun reduceFinished(packet: DoReducePacket) {
+        jobMap[packet.job.id]?.apply {
+            packet.job.jobContext.mapIntermediateFiles.forEach { (reducePartition, intermediateFiles) ->
+                jobContext.mapIntermediateFiles.putIfAbsent(reducePartition, intermediateFiles)
+                jobContext.mapIntermediateFiles[reducePartition]!!.addAll(intermediateFiles)
+            }
+
+            jobContext.finishedReducer.add(packet.server)
+            if (jobContext.finishedReducer.containsAll(jobContext.reducer)) {
+                println("all reducer finished")
                 this.jobContext.currentPc = packet.job.jobContext.currentPc
                 this.status = RUNNING
             }

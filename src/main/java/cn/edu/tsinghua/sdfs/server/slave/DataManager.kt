@@ -7,7 +7,7 @@ import java.nio.file.Paths
 
 object DataManager {
 
-    private val ROOT_DIR = Paths.get(slave.folder)
+    val ROOT_DIR = Paths.get(slave.folder)
 
     init {
         if (Files.notExists(ROOT_DIR)) {

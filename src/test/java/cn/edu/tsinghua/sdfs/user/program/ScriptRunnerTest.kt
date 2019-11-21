@@ -1,6 +1,8 @@
 package cn.edu.tsinghua.sdfs.user.program
 
 import org.junit.jupiter.api.Test
+import java.nio.file.Files
+import java.nio.file.Paths
 import javax.script.Invocable
 import javax.script.ScriptContext
 import javax.script.ScriptEngineManager
@@ -68,15 +70,15 @@ fun sdfsRead(file: String) {
 
         engine.eval(
                 """
-                sdfsRead("1\n2\n444\n555\n100001")
+                sdfsRead("test_file/numberFile")
                 sdfsMap({ a: String -> a.split("\n") })
-                sdfsMap({ a: List<String> -> a.map{ it.toInt() } })
+                sdfsMap({ a: List<String> -> a.filter{it.isNotEmpty()}.map{ it.toInt() } })
                 sdfsShuffle {a:Int -> a % 10000}
                 sdfsReduce({ a: List<Int> -> a.reduce { i, j -> i + j } })
 """
         )
 
-        var lastResult = file.toString() as Any
+        var lastResult = String(Files.readAllBytes(Paths.get(file.toString()))) as Any
         functions.forEach {
             println(it.first)
             if (it.first == "shuffle") {
@@ -86,6 +88,13 @@ fun sdfsRead(file: String) {
                 }
             } else {
                 println(lastResult.javaClass)
+                println(it.second)
+                val type = it.second.toString()
+                if (type.substringBefore(") ->")
+                        .substringAfter("(")
+                        .equals("kotlin.collections.List<kotlin.Int>")) {
+                    println("is List<Int>")
+                }
                 lastResult = it.second(lastResult)
                 println(lastResult)
             }

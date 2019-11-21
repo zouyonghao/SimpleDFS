@@ -8,6 +8,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
 import cn.edu.tsinghua.sdfs.server.master.JobTracker
 import cn.edu.tsinghua.sdfs.server.master.NameManager
@@ -37,13 +38,21 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
                 Codec.writeAndFlushPacket(ctx.channel(), NameManager.getNameItem(packet.filePath))
             }
             is UserProgram -> {
+                println("receive user program ${packet.id}")
                 UserProgramManager.saveUserProgram(packet)
                 SlaveManager.uploadUserProgram(packet) {
                     JobTracker.startJob(packet)
                 }
             }
+            // map task finish from a mapper
             is DoMapPacket -> {
+                println("receive map packet with job id ${packet.job.id}")
                 JobTracker.mapFinished(packet)
+            }
+            // reduce task finish from a reducer
+            is DoReducePacket-> {
+                println("receive reduce packet with job id ${packet.job.id}")
+                JobTracker.reduceFinished(packet)
             }
         }
     }

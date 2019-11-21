@@ -73,6 +73,10 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
                 println(packet)
                 val randomAccessFile = DataManager.getFile(packet.filePath)
                 ctx.channel().writeAndFlush(DefaultFileRegion(randomAccessFile.channel, 0, randomAccessFile.length()))
+                        .addListener {
+                            println("transfer ${packet.filePath} finished")
+                            ctx.channel().close()
+                        }
             }
             is RmPartition -> {
                 DataManager.deleteFile(packet.file)
@@ -83,11 +87,12 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
                 UserProgramManager.saveUserProgram(packet)
             }
             is DoMapPacket -> {
+                println("receive map packet with job id ${packet.job.id}")
                 Mapper.doMap(packet)
                 Codec.writeAndFlushPacket(ctx.channel(), packet)
             }
             is DoReducePacket -> {
-                println(packet)
+                println("receive reduce packet with job id ${packet.job.id}")
                 Reducer.doReduce(packet)
                 Codec.writeAndFlushPacket(ctx.channel(), packet)
             }

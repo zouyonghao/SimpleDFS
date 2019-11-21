@@ -54,7 +54,8 @@ object Mapper {
                             job.jobContext.mapIntermediateFiles.put(reducePartition, mutableSetOf())
                         }
                         job.jobContext.mapIntermediateFiles[reducePartition]!!.add(
-                                IntermediateFile(packet.slave, intermediateFilePath.toString()))
+                                IntermediateFile(packet.slave,
+                                        intermediateFilePath.subpath(1, intermediateFilePath.nameCount).toString()))
                     }
                     break@loop
                 }
