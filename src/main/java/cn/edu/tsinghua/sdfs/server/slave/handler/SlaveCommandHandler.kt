@@ -75,6 +75,7 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
                 ctx.channel().writeAndFlush(DefaultFileRegion(randomAccessFile.channel, 0, randomAccessFile.length()))
                         .addListener {
                             println("transfer ${packet.filePath} finished")
+                            // close download connection each time
                             ctx.channel().close()
                         }
             }

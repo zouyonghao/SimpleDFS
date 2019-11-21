@@ -5,6 +5,7 @@ import cn.edu.tsinghua.sdfs.client.handler.FileUploader
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobQuery
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import io.netty.channel.Channel
@@ -62,6 +63,11 @@ object SendFileConsole {
                                 String(Files.readAllBytes(Paths.get(localFile)))))
                 println("script uuid: $uuid")
                 masterChannel.close()
+            }
+            "jobStatus"-> {
+                val id = args[1]
+                Codec.writeAndFlushPacket(masterChannel,
+                        JobQuery(id))
             }
         }
     }

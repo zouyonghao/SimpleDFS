@@ -2,7 +2,15 @@ package cn.edu.tsinghua.sdfs.protocol
 
 import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.protocol.packet.Packet
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.*
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobQuery
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
 import cn.edu.tsinghua.sdfs.protocol.serilizer.Serializer
@@ -36,6 +44,8 @@ object Codec {
     const val DO_MAP_ = 15
     const val DO_REDUCE_ = 16
 
+    const val JOB_QUERY = 17
+
     private val packetTypeMap = mapOf(
             CREATE_REQUEST   to CreateRequest::class.java,
             LS               to LsPacket::class.java,
@@ -46,7 +56,8 @@ object Codec {
             DOWNLOAD_REQUEST to DownloadRequest::class.java,
             USER_PROGRAM     to UserProgram::class.java,
             DO_MAP_          to DoMapPacket::class.java,
-            DO_REDUCE_       to DoReducePacket::class.java
+            DO_REDUCE_       to DoReducePacket::class.java,
+            JOB_QUERY        to JobQuery::class.java
     )
 
     private fun encode(byteBuf: ByteBuf, packet: Packet): ByteBuf {
@@ -72,7 +83,8 @@ object Codec {
     }
 
     fun writeAndFlushPacket(channel: Channel, packet: Packet): ChannelFuture {
-        return channel.writeAndFlush(encode(channel.alloc().ioBuffer(), packet))
+        val ioBuffer = channel.alloc().ioBuffer()
+        return channel.writeAndFlush(encode(ioBuffer, packet))
     }
 
 }

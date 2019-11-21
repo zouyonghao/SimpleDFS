@@ -149,4 +149,12 @@ object JobTracker {
         }
         Files.write(Paths.get(path.toString(), "${job.id}.json"), JSON.toJSONBytes(job))
     }
+
+    fun getJob(id: String): String {
+        val path = Paths.get(ROOT_DIR.toString(), userProgramDir, "$id.json")
+        if (Files.exists(path)) {
+            return String(Files.readAllBytes(path))
+        }
+        return "job not exist"
+    }
 }

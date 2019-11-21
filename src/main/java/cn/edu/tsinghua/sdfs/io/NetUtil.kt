@@ -15,13 +15,13 @@ import io.netty.handler.codec.DelimiterBasedFrameDecoder
 object NetUtil {
 
     private val futureToGroupMap = mutableMapOf<Channel, NioEventLoopGroup>()
-    private val serverToChannelMap = mutableMapOf<Server, ChannelFuture>()
+    // private val serverToChannelMap = mutableMapOf<Server, ChannelFuture>()
 
     fun connect(server: Server, vararg handlers: ChannelHandler): ChannelFuture {
 
-        if (serverToChannelMap.containsKey(server)) {
-            return serverToChannelMap[server]!!
-        }
+        // if (serverToChannelMap.containsKey(server)) {
+        //     return serverToChannelMap[server]!!
+        // }
 
         val bootstrap = Bootstrap()
 
@@ -29,8 +29,8 @@ object NetUtil {
 
         bootstrap.group(group)
                 .channel(NioSocketChannel::class.java)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 500)
+                // .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .handler(object : ChannelInitializer<NioSocketChannel>() {
                     @Throws(Exception::class)
@@ -46,12 +46,12 @@ object NetUtil {
         // println(future.channel())
 
         futureToGroupMap[future.channel()] = group
-        serverToChannelMap[server] = future
+        // serverToChannelMap[server] = future
         return future
     }
 
     fun shutdownGracefully(channel: Channel?) {
-        // println(channel)
+        println("channel $channel shutdown")
         futureToGroupMap[channel]?.shutdownGracefully()
         futureToGroupMap.remove(channel)
     }

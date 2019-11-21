@@ -63,6 +63,8 @@ object Mapper {
                     break@loop
                 }
             }
+
+            System.gc()
         }
 
         job.jobContext.currentPc = currentPc

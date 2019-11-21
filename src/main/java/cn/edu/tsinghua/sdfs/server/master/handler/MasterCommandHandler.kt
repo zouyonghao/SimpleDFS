@@ -4,6 +4,7 @@ import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobQuery
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
@@ -50,9 +51,14 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
                 JobTracker.mapFinished(packet)
             }
             // reduce task finish from a reducer
-            is DoReducePacket-> {
+            is DoReducePacket -> {
                 println("receive reduce packet with job id ${packet.job.id}")
                 JobTracker.reduceFinished(packet)
+            }
+
+            is JobQuery -> {
+                println("recieve job query ${packet.id}")
+                Codec.writeAndFlushPacket(ctx.channel(), ResultToClient(JobTracker.getJob(packet.id)))
             }
         }
     }

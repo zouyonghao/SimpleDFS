@@ -74,6 +74,8 @@ object Reducer {
                     println("Unsupport type yet $reduceParamType")
                 }
             }
+
+            System.gc()
         }
 
         job.jobContext.reduceResultFiles[packet.filePartition] = reduceResultFiles
