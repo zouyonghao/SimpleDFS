@@ -60,15 +60,17 @@ object Reducer {
             val reduceParamType = pair.second.toString()
                     .substringBefore(") ->")
                     .substringAfter("(")
-            when {
-                reduceParamType == "kotlin.collections.List<kotlin.Int>" -> {
+            when (reduceParamType) {
+                "kotlin.collections.List<kotlin.Int>" -> {
                     println("reduce func's parameter is List<Int>")
                     lastResult = (lastResult as List<String>).filter { it.isNotEmpty() }.map { line -> line.toInt() }
                     lastResult = pair.second(lastResult)
 
                     // each intermediate file have a result file, which should be merged
-                    Files.write(Paths.get("$partition.result"), lastResult.toString().toByteArray())
-                    reduceResultFiles.add(IntermediateFile(packet.server, "$partition.result"))
+                    val path = Paths.get("$partition.result")
+                    Files.write(path, lastResult.toString().toByteArray())
+                    val relativePath = path.subpath(1, path.nameCount)
+                    reduceResultFiles.add(IntermediateFile(packet.server, relativePath.toString()))
                 }
                 else -> {
                     println("Unsupport type yet $reduceParamType")
@@ -80,5 +82,9 @@ object Reducer {
 
         job.jobContext.reduceResultFiles[packet.filePartition] = reduceResultFiles
         job.jobContext.currentPc++
+    }
+
+    fun getResult(file: String): String {
+        return String(Files.readAllBytes(Paths.get(slave.folder, file)))
     }
 }

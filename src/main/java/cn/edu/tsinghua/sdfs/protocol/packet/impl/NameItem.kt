@@ -23,4 +23,5 @@ data class NameItem(
 
     var exist = false
     var download = false
+    var success = true
 }

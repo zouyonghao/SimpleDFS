@@ -23,6 +23,8 @@ object NetUtil {
         //     return serverToChannelMap[server]!!
         // }
 
+        println("connecting to $server")
+
         val bootstrap = Bootstrap()
 
         val group = NioEventLoopGroup()

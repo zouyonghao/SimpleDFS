@@ -13,8 +13,10 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.stream.ChunkedWriteHandler
 import java.io.RandomAccessFile
+import java.util.concurrent.CountDownLatch
 
 object FileDownloader {
+    lateinit var countDownLatch: CountDownLatch
     lateinit var localFile: String
     lateinit var remoteFile: String
 
@@ -56,15 +58,18 @@ object FileDownloader {
                                 written += randomAccessFile.channel.write(byteBuffer)
                             }
                             // byteBuf.readerIndex(byteBuf.readerIndex() + written)
-                            position += written
-                            fileDownloadLength += written
                             randomAccessFile.channel.force(true)
                             byteBuf.release()
+                            synchronized(this) {
+                                position += written
+                                fileDownloadLength += written
 
-                            if (fileDownloadLength == fileLength) {
-                                partitionFiles.forEach { it.close() }
-                                channels.forEach { NetUtil.shutdownGracefully(it) }
-                                FileUtil.mergeFiles(localFile, localFile)
+                                if (fileDownloadLength == fileLength) {
+                                    partitionFiles.forEach { it.close() }
+                                    channels.forEach { NetUtil.shutdownGracefully(it) }
+                                    FileUtil.mergeFiles(localFile, localFile)
+                                    countDownLatch.countDown()
+                                }
                             }
 
                             return

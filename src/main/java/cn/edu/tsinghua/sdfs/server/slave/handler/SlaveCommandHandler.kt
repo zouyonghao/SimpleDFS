@@ -7,6 +7,7 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.GetReduceResult
 import cn.edu.tsinghua.sdfs.server.mapreduce.Mapper
 import cn.edu.tsinghua.sdfs.server.mapreduce.Reducer
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
@@ -96,6 +97,12 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
             is DoReducePacket -> {
                 println("receive reduce packet with job id ${packet.job.id}")
                 Reducer.doReduce(packet)
+                Codec.writeAndFlushPacket(ctx.channel(), packet)
+            }
+
+            is GetReduceResult -> {
+                println("receive getReduceResult packet")
+                packet.result = Reducer.getResult(packet.file)
                 Codec.writeAndFlushPacket(ctx.channel(), packet)
             }
         }

@@ -8,9 +8,11 @@ import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.GetReduceResult
 import cn.edu.tsinghua.sdfs.server.mapreduce.IntermediateFile
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
 import cn.edu.tsinghua.sdfs.server.master.handler.MasterCommandHandler
+import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -31,12 +33,16 @@ object SlaveManager {
                 if (!ok()) {
                     try {
                         NetUtil.shutdownGracefully(future?.channel())
-                        println("connecting to $server")
                         future = NetUtil.connect(
                                 server,
                                 delimiterBasedFrameDecoder(),
                                 MasterCommandHandler())
-                        connectionSuccess = true
+                        future!!.awaitUninterruptibly()
+                        if (future!!.isSuccess)
+                            connectionSuccess = true
+                        else {
+                            NetUtil.shutdownGracefully(future!!.channel())
+                        }
                     } catch (e: Exception) {
                         println("connect to $server fail")
                         e.printStackTrace()
@@ -59,6 +65,16 @@ object SlaveManager {
         }
     }
 
+    fun getOkSlave(list: MutableList<Server>): Server? {
+        slaveChannels.filter { it.ok() && !list.contains(it.server) }.apply {
+            if (isEmpty()) {
+                println("allocate slave fail")
+                return null
+            }
+            return random().server
+        }
+
+    }
 
     fun close() {
         executor.shutdown()
@@ -96,5 +112,17 @@ object SlaveManager {
         Codec.writeAndFlushPacket(slave.future!!.channel(), DoReducePacket(job, slave.server, reducePartition, intermediateFiles))
         job.jobContext.reducer.add(slave.server)
         return slave.server
+    }
+
+    fun getReduceResult(server: Server, file: String, channelId: String, reduceIndex: Int) {
+        val future = slaveChannels.find { it.server == server }!!.future
+        Codec.writeAndFlushPacket(future!!.channel(), GetReduceResult(file, channelId, reduceIndex))
+    }
+
+    fun slaveChannelUnregister(channel: Channel) {
+        slaveChannels.find { it.future?.channel() == channel }?.apply {
+            println("A slave connection reset")
+            this.connectionSuccess = false
+        }
     }
 }

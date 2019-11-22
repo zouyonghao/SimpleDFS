@@ -4,16 +4,19 @@ import cn.edu.tsinghua.sdfs.exception.WrongCodecException
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobQuery
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobResultQuery
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobStatusQuery
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.GetReduceResult
 import cn.edu.tsinghua.sdfs.server.mapreduce.UserProgramManager
 import cn.edu.tsinghua.sdfs.server.master.JobTracker
 import cn.edu.tsinghua.sdfs.server.master.NameManager
 import cn.edu.tsinghua.sdfs.server.master.SlaveManager
+import com.alibaba.fastjson.JSON
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
@@ -56,10 +59,29 @@ class MasterCommandHandler : ChannelInboundHandlerAdapter() {
                 JobTracker.reduceFinished(packet)
             }
 
-            is JobQuery -> {
-                println("recieve job query ${packet.id}")
-                Codec.writeAndFlushPacket(ctx.channel(), ResultToClient(JobTracker.getJob(packet.id)))
+            is JobStatusQuery -> {
+                println("receive job query ${packet.id}")
+                Codec.writeAndFlushPacket(ctx.channel(), ResultToClient(
+                        JSON.toJSONString(JobTracker.getJob(packet.id), true))
+                )
+            }
+
+            is JobResultQuery -> {
+                println("receive job result ${packet.id}")
+                Codec.writeAndFlushPacket(ctx.channel(), ResultToClient(
+                        JobTracker.getReduceResult(ctx.channel().id().asLongText(), packet)))
+            }
+
+            is GetReduceResult -> {
+                println("receive reduce result for channel ${packet.channelId}")
+                JobTracker.receiveReduceResult(packet)
             }
         }
+    }
+
+    override fun channelUnregistered(ctx: ChannelHandlerContext) {
+        super.channelUnregistered(ctx)
+        SlaveManager.slaveChannelUnregister(ctx.channel())
+        println("channel unregistered")
     }
 }

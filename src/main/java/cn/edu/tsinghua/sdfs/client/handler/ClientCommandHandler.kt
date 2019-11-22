@@ -8,15 +8,20 @@ import cn.edu.tsinghua.sdfs.protocol.packet.impl.FilePacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.NameItem
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.ResultToClient
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.RmPartition
+import com.alibaba.fastjson.JSON
+import com.alibaba.fastjson.TypeReference
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
+import java.util.concurrent.CountDownLatch
 
 class ClientCommandHandler : ChannelInboundHandlerAdapter() {
 
     companion object {
         var partitionsNeedDelete: Int = 0
         var partitionsDeleted: Int = 0
+        // sum it ya!
+        var sumItYa = false
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -28,25 +33,44 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
         when (val packet = Codec.decode(byteBuf)) {
             is ResultToClient -> {
                 println(packet.result)
+                if (sumItYa && JSON.isValid(packet.result)) {
+                    // MutableMap<Int, MutableList<String>>
+                    var sum = 0
+                    JSON.parseObject(packet.result, object : TypeReference<MutableMap<Int, MutableList<String>>>() {}).forEach { _, list ->
+                        list.forEach {
+                            sum += it.toInt()
+                        }
+                    }
+                    println(sum)
+                }
                 ctx.channel().close()
             }
             is NameItem -> {
-                if (packet.exist) {
-                    // download
-                    if (packet.download) {
-                        FileDownloader.fileLength = packet.fileLength
-                        FileDownloader.download(packet)
-                        ctx.channel().close()
+                packet.apply {
+                    if (exist) {
+                        // download
+                        if (download) {
+                            val countDownLatch = CountDownLatch(1)
+                            FileDownloader.countDownLatch = countDownLatch
+                            FileDownloader.fileLength = fileLength
+                            FileDownloader.download(this)
+                            countDownLatch.await()
+                            ctx.channel().close()
+                        } else {
+                            partitions.forEach { it.forEach { _ -> partitionsNeedDelete++ } }
+                            println("file already exist, old one will be deleted")
+                            FileUploader.deleteOld(this)
+                        }
                     } else {
-                        packet.partitions.forEach { it.forEach { _ -> partitionsNeedDelete++ } }
-                        println("file already exist, old one will be deleted")
-                        FileUploader.deleteOld(packet)
+                        if (download) {
+                            println("file does not exist")
+                        } else if (!success) {
+                            println("allocate slave failed, check slave server")
+                        } else if (partitions.size > 0) {
+                            FileUploader.upload(this)
+                        }
+                        ctx.channel().close()
                     }
-                } else {
-                    if (packet.partitions.size > 0) {
-                        FileUploader.upload(packet)
-                    }
-                    ctx.channel().close()
                 }
             }
             // from slave server
@@ -61,7 +85,7 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
                     println("all partitions deleted!")
                     SendFileConsole.sendCreateRequest()
                 }
-                // ctx.channel().close()
+                shutdownGracefully(ctx.channel())
             }
 
             // create success
@@ -70,7 +94,7 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
             }
             else -> {
                 println(packet)
-                ctx.channel().close()
+                // ctx.channel().close()
             }
         }
     }

@@ -1,8 +1,10 @@
 package cn.edu.tsinghua.sdfs.server.master
 
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobResultQuery
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoMapPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.DoReducePacket
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.mapreduce.GetReduceResult
 import cn.edu.tsinghua.sdfs.server.mapreduce.Job
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FAIL
 import cn.edu.tsinghua.sdfs.server.mapreduce.JobStatus.FINISHED
@@ -14,6 +16,8 @@ import com.alibaba.fastjson.JSON
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -150,11 +154,69 @@ object JobTracker {
         Files.write(Paths.get(path.toString(), "${job.id}.json"), JSON.toJSONBytes(job))
     }
 
-    fun getJob(id: String): String {
+    fun getJob(id: String): Job? {
         val path = Paths.get(ROOT_DIR.toString(), userProgramDir, "$id.json")
         if (Files.exists(path)) {
-            return String(Files.readAllBytes(path))
+            return JSON.parseObject(String(Files.readAllBytes(path)), Job::class.java)
         }
-        return "job not exist"
+        return null
+    }
+
+    // channel id : { reduce index : ["result1", "result2"]}
+    // todo: three map to object, fix this ugly implement
+    val channelIdToReducerQueryMap = ConcurrentHashMap<String, MutableMap<Int, MutableList<String>>>()
+    val channelIdToReducerCount = ConcurrentHashMap<String, Int>()
+    val channelIdToCountDownLatch = ConcurrentHashMap<String, CountDownLatch>()
+    fun getReduceResult(channelId: String, packet: JobResultQuery): String {
+        val job = getJob(packet.id) ?: return "job ${packet.id} doesn't exist"
+
+        channelIdToReducerQueryMap.putIfAbsent(channelId, mutableMapOf())
+        var count = 0
+        job.jobContext.reduceResultFiles.forEach { (_, intermediateFiles) ->
+            run {
+                intermediateFiles.forEach { _ ->
+                    count++
+                }
+            }
+        }
+        channelIdToReducerCount.putIfAbsent(channelId, count)
+        channelIdToCountDownLatch.putIfAbsent(channelId, CountDownLatch(1))
+
+        // reduce index : ["result1", "result2"]
+        val resultMap = mutableMapOf<Int, MutableList<String>>()
+        channelIdToReducerQueryMap[channelId] = resultMap
+        job.jobContext.reduceResultFiles.forEach { (reduceIndex, intermediateFiles) ->
+            run {
+                resultMap.putIfAbsent(reduceIndex, mutableListOf())
+                intermediateFiles.forEach {
+                    SlaveManager.getReduceResult(it.server, it.file, channelId, reduceIndex)
+                }
+            }
+        }
+
+        channelIdToCountDownLatch[channelId]!!.await()
+
+        val returnResult = JSON.toJSONString(channelIdToReducerQueryMap[channelId])
+        channelIdToReducerQueryMap.remove(channelId)
+        channelIdToReducerCount.remove(channelId)
+        channelIdToCountDownLatch.remove(channelId)
+        return returnResult
+    }
+
+    fun receiveReduceResult(packet: GetReduceResult) {
+        channelIdToReducerQueryMap[packet.channelId]!![packet.reduceId]!!.add(packet.result)
+        var count = 0
+        channelIdToReducerQueryMap[packet.channelId]!!.forEach { (_, results) ->
+            run {
+                results.forEach { _ ->
+                    count++
+                }
+            }
+        }
+        // println(count)
+        // println(channelIdToReducerCount[packet.channelId])
+        if (count == channelIdToReducerCount[packet.channelId]) {
+            channelIdToCountDownLatch[packet.channelId]!!.countDown()
+        }
     }
 }

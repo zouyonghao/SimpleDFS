@@ -34,11 +34,9 @@ object ScriptRunner {
         setIdeaIoUseFallback()
     }
 
-    val engine = ScriptEngineManager().getEngineByExtension("kts")
-
     // todo: cache user program?
     fun compile(program: String): JobContext {
-
+        val engine = ScriptEngineManager().getEngineByExtension("kts")
         val functions = mutableListOf<Pair<String, (Any) -> Any>>()
 
         val file = StringBuilder()

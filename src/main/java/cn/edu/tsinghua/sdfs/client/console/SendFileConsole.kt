@@ -1,11 +1,13 @@
 package cn.edu.tsinghua.sdfs.client.console
 
+import cn.edu.tsinghua.sdfs.client.handler.ClientCommandHandler
 import cn.edu.tsinghua.sdfs.client.handler.FileDownloader
 import cn.edu.tsinghua.sdfs.client.handler.FileUploader
 import cn.edu.tsinghua.sdfs.protocol.Codec
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.CreateRequest
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.DownloadRequest
-import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobQuery
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobResultQuery
+import cn.edu.tsinghua.sdfs.protocol.packet.impl.JobStatusQuery
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.LsPacket
 import cn.edu.tsinghua.sdfs.protocol.packet.impl.UserProgram
 import io.netty.channel.Channel
@@ -64,10 +66,21 @@ object SendFileConsole {
                 println("script uuid: $uuid")
                 masterChannel.close()
             }
-            "jobStatus"-> {
+            "jobStatus" -> {
                 val id = args[1]
                 Codec.writeAndFlushPacket(masterChannel,
-                        JobQuery(id))
+                        JobStatusQuery(id))
+            }
+            "jobResult" -> {
+                val id = args[1]
+                Codec.writeAndFlushPacket(masterChannel,
+                        JobResultQuery(id))
+            }
+            "sumJobResult" -> {
+                val id = args[1]
+                ClientCommandHandler.sumItYa = true
+                Codec.writeAndFlushPacket(masterChannel,
+                        JobResultQuery(id))
             }
         }
     }

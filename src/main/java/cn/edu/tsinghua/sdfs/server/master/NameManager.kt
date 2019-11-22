@@ -63,7 +63,8 @@ object NameManager {
         if (remainingBytes > 0) {
             allocateSlave(nameItem)
         }
-        Files.write(item, nameItem.toJsonString().toByteArray())
+        if (nameItem.success)
+            Files.write(item, nameItem.toJsonString().toByteArray())
         return nameItem
     }
 
@@ -71,7 +72,10 @@ object NameManager {
         val list = mutableListOf<Server>()
         nameItem.partitions.add(list)
         for (j in 0 until config.replication) {
-            list.add(config.slaves.random())
+            list.add(SlaveManager.getOkSlave(list) ?: run {
+                nameItem.success = false
+                return
+            })
         }
     }
 

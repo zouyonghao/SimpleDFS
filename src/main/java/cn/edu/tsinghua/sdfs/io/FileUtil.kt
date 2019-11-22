@@ -65,9 +65,11 @@ object FileUtil {
         val mergedFile = RandomAccessFile(output, "rw")
         var index = 0L
         Files.walk(path.parent ?: Paths.get("."), 1)
+                .sorted()
                 .filter { it.fileName.toString().contains(Regex("${path.fileName}\\d{7}")) }
+
                 .forEachOrdered {
-                    // println(it)
+                    println(it.fileName)
                     RandomAccessFile(it.toFile(), "r").let { part ->
                         mergedFile.channel.transferFrom(
                                 part.channel,

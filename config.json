@@ -16,6 +16,6 @@
       "folder": "data_sdfs2"
     }
   ],
-  "replication": 1,
+  "replication": 2,
   "blockSize": 3
 }
