@@ -46,6 +46,7 @@ object Mapper {
                                     RandomAccessFile(intermediateFilePath.toFile(), "rw"))
                         }
                         intermediateFiles[reducePartition]!!.apply {
+                            seek(this.length())
                             // println(it.javaClass)
                             write(it.toString().toByteArray())
                             write("\n".toByteArray())
