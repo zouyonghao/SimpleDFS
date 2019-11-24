@@ -10,8 +10,8 @@ internal class RandomGenerator {
     fun generateNumToTestFile() {
         val f = RandomAccessFile("test_file/numberFile", "rw")
         val r = Random(0)
-        for (i in 0 until 1000000) {
-            f.writeBytes("${r.nextInt(-10000, 10000)}\n")
+        for (i in 0 until 100000000) {
+            f.writeBytes("${r.nextInt(10000)}\n")
         }
         f.close()
     }

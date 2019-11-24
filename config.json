@@ -17,5 +17,5 @@
     }
   ],
   "replication": 2,
-  "blockSize": 3
+  "blockSize": 128
 }

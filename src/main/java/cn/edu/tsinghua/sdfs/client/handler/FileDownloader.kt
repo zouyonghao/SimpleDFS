@@ -60,7 +60,7 @@ object FileDownloader {
                             // byteBuf.readerIndex(byteBuf.readerIndex() + written)
                             randomAccessFile.channel.force(true)
                             byteBuf.release()
-                            synchronized(this) {
+                            synchronized(FileDownloader) {
                                 position += written
                                 fileDownloadLength += written
 

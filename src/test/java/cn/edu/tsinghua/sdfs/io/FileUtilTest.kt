@@ -13,6 +13,7 @@ import kotlin.streams.toList
 import kotlin.test.assertEquals
 
 @Execution(ExecutionMode.SAME_THREAD)
+@Disabled
 internal class FileUtilTest {
 
     companion object {
@@ -53,9 +54,9 @@ internal class FileUtilTest {
         Files.deleteIfExists(Paths.get(TEST_FILE_MERGE))
     }
 
-    @Disabled
     @Test
+    @Disabled
     fun testNumber() {
-        FileUtil.splitFile("test_file/numberFile", 1)
+        // FileUtil.splitFile("test_file/numberFile", 100)
     }
 }

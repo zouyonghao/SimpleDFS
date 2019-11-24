@@ -101,14 +101,14 @@ object SlaveManager {
     }
 
     fun doMap(job: Job, slaves: MutableList<Server>, filePartition: Int): Server? {
-        val slave = slaveChannels.find { it.ok() && slaves.contains(it.server) } ?: return null
+        val slave = slaveChannels.filter { it.ok() && slaves.contains(it.server) }.random()
         Codec.writeAndFlushPacket(slave.future!!.channel(), DoMapPacket(job, slave.server, filePartition))
         job.jobContext.mapper.add(slave.server)
         return slave.server
     }
 
     fun doReduce(job: Job, reducePartition: Int, intermediateFiles: MutableSet<IntermediateFile>): Server? {
-        val slave = slaveChannels.find { it.ok() } ?: return null
+        val slave = slaveChannels.filter { it.ok() }.random()
         Codec.writeAndFlushPacket(slave.future!!.channel(), DoReducePacket(job, slave.server, reducePartition, intermediateFiles))
         job.jobContext.reducer.add(slave.server)
         return slave.server

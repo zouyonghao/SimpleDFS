@@ -35,10 +35,10 @@ class ClientCommandHandler : ChannelInboundHandlerAdapter() {
                 println(packet.result)
                 if (sumItYa && JSON.isValid(packet.result)) {
                     // MutableMap<Int, MutableList<String>>
-                    var sum = 0
+                    var sum = 0.toDouble()
                     JSON.parseObject(packet.result, object : TypeReference<MutableMap<Int, MutableList<String>>>() {}).forEach { _, list ->
                         list.forEach {
-                            sum += it.toInt()
+                            sum += it.toDouble()
                         }
                     }
                     println(sum)

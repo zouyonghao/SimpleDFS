@@ -114,34 +114,40 @@ object JobTracker {
     }
 
     fun mapFinished(packet: DoMapPacket) {
-        jobMap[packet.job.id]?.apply {
-            packet.job.jobContext.mapIntermediateFiles.forEach { (reducePartition, intermediateFiles) ->
-                jobContext.mapIntermediateFiles.putIfAbsent(reducePartition, intermediateFiles)
-                jobContext.mapIntermediateFiles[reducePartition]!!.addAll(intermediateFiles)
-            }
+        synchronized(JobTracker) {
+            jobMap[packet.job.id]?.apply {
+                packet.job.jobContext.mapIntermediateFiles.forEach { (reducePartition, intermediateFiles) ->
+                    jobContext.mapIntermediateFiles.putIfAbsent(reducePartition, intermediateFiles)
+                    jobContext.mapIntermediateFiles[reducePartition]!!.addAll(intermediateFiles)
+                }
 
-            jobContext.finishedMapper.add(packet.slave)
-            println("partition ${packet.partition}")
-            if (jobContext.finishedMapper.containsAll(jobContext.mapper)) {
-                println("all mapper finished!")
-                this.jobContext.currentPc = packet.job.jobContext.currentPc
-                this.status = RUNNING
+                jobContext.finishedMapper.add(packet.slave)
+                println("partition ${packet.partition}")
+                if (jobContext.finishedMapper.containsAll(jobContext.mapper) &&
+                        jobContext.finishedMapper.size == jobContext.mapper.size) {
+                    println("all mapper finished!")
+                    this.jobContext.currentPc = packet.job.jobContext.currentPc
+                    this.status = RUNNING
+                }
             }
         }
     }
 
     fun reduceFinished(packet: DoReducePacket) {
-        jobMap[packet.job.id]?.apply {
-            packet.job.jobContext.reduceResultFiles.forEach { (reducePartition, intermediateFiles) ->
-                jobContext.reduceResultFiles.putIfAbsent(reducePartition, intermediateFiles)
-                jobContext.reduceResultFiles[reducePartition]!!.addAll(intermediateFiles)
-            }
+        synchronized(JobTracker) {
+            jobMap[packet.job.id]?.apply {
+                packet.job.jobContext.reduceResultFiles.forEach { (reducePartition, intermediateFiles) ->
+                    jobContext.reduceResultFiles.putIfAbsent(reducePartition, intermediateFiles)
+                    jobContext.reduceResultFiles[reducePartition]!!.addAll(intermediateFiles)
+                }
 
-            jobContext.finishedReducer.add(packet.server)
-            if (jobContext.finishedReducer.containsAll(jobContext.reducer)) {
-                println("all reducer finished")
-                this.jobContext.currentPc = packet.job.jobContext.currentPc
-                this.status = RUNNING
+                jobContext.finishedReducer.add(packet.server)
+                if (jobContext.finishedReducer.containsAll(jobContext.reducer) &&
+                        jobContext.finishedReducer.size == jobContext.reducer.size) {
+                    println("all reducer finished")
+                    this.jobContext.currentPc = packet.job.jobContext.currentPc
+                    this.status = RUNNING
+                }
             }
         }
     }
@@ -204,19 +210,21 @@ object JobTracker {
     }
 
     fun receiveReduceResult(packet: GetReduceResult) {
-        channelIdToReducerQueryMap[packet.channelId]!![packet.reduceId]!!.add(packet.result)
-        var count = 0
-        channelIdToReducerQueryMap[packet.channelId]!!.forEach { (_, results) ->
-            run {
-                results.forEach { _ ->
-                    count++
+        synchronized(JobTracker) {
+            channelIdToReducerQueryMap[packet.channelId]!![packet.reduceId]!!.add(packet.result)
+            var count = 0
+            channelIdToReducerQueryMap[packet.channelId]!!.forEach { (_, results) ->
+                run {
+                    results.forEach { _ ->
+                        count++
+                    }
                 }
             }
-        }
-        // println(count)
-        // println(channelIdToReducerCount[packet.channelId])
-        if (count == channelIdToReducerCount[packet.channelId]) {
-            channelIdToCountDownLatch[packet.channelId]!!.countDown()
+            // println(count)
+            // println(channelIdToReducerCount[packet.channelId])
+            if (count == channelIdToReducerCount[packet.channelId]) {
+                channelIdToCountDownLatch[packet.channelId]!!.countDown()
+            }
         }
     }
 }

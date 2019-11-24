@@ -27,10 +27,10 @@ object Mapper {
         val localFilePath = DataManager.getFilePath(job.jobContext.file, packet.partition)
         var lastResult = DataManager.getFileAsString(localFilePath) as Any
         val functions = job.jobContext.functions!!
+        val intermediateFiles = mutableMapOf<Int, RandomAccessFile>()
         loop@ for (i in currentPc until functions.size) {
             val type = functions[i].first
             val function = functions[i].second
-            val intermediateFiles = mutableMapOf<Int, RandomAccessFile>()
             when (type) {
                 "map" -> {
                     println(lastResult.javaClass)
@@ -39,7 +39,16 @@ object Mapper {
                 }
                 "shuffle" -> {
                     (lastResult as List<*>).forEach {
-                        val reducePartition = function(it!!) as Int
+                        // todo: performance issue here!!
+                        val shuffleResult = function(it!!)
+                        val reducePartition:Int
+                        if (shuffleResult is Int) {
+                            reducePartition = shuffleResult
+                        } else if (shuffleResult is Double) {
+                            reducePartition = shuffleResult.toInt()
+                        } else {
+                            throw IllegalStateException()
+                        }
                         val intermediateFilePath = getIntermediateFile(job, reducePartition)
                         if (!intermediateFiles.containsKey(reducePartition)) {
                             intermediateFiles.put(reducePartition,
@@ -47,10 +56,9 @@ object Mapper {
                         }
                         intermediateFiles[reducePartition]!!.apply {
                             seek(this.length())
-                            // println(it.javaClass)
-                            write(it.toString().toByteArray())
-                            write("\n".toByteArray())
+                            write("$it\n".toByteArray())
                         }
+
                         if (!job.jobContext.mapIntermediateFiles.containsKey(reducePartition)) {
                             job.jobContext.mapIntermediateFiles.put(reducePartition, mutableSetOf())
                         }
@@ -64,9 +72,15 @@ object Mapper {
                     break@loop
                 }
             }
-
-            System.gc()
         }
+
+        intermediateFiles.forEach { _, file ->
+            run {
+                file.close()
+            }
+        }
+
+        System.gc()
 
         job.jobContext.currentPc = currentPc
     }

@@ -72,6 +72,17 @@ object Reducer {
                     val relativePath = path.subpath(1, path.nameCount)
                     reduceResultFiles.add(IntermediateFile(packet.server, relativePath.toString()))
                 }
+                "kotlin.collections.List<kotlin.Double>" -> {
+                    println("reduce func's parameter is List<Double>")
+                    lastResult = (lastResult as List<String>).filter { it.isNotEmpty() }.map { line -> line.toDouble() }
+                    lastResult = pair.second(lastResult)
+
+                    // each intermediate file have a result file, which should be merged
+                    val path = Paths.get("$partition.result")
+                    Files.write(path, lastResult.toString().toByteArray())
+                    val relativePath = path.subpath(1, path.nameCount)
+                    reduceResultFiles.add(IntermediateFile(packet.server, relativePath.toString()))
+                }
                 else -> {
                     println("Unsupport type yet $reduceParamType")
                 }

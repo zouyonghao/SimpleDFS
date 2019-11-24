@@ -1,8 +1,6 @@
 package cn.edu.tsinghua.sdfs.user.program
 
 import org.junit.jupiter.api.Test
-import java.nio.file.Files
-import java.nio.file.Paths
 import javax.script.Invocable
 import javax.script.ScriptContext
 import javax.script.ScriptEngineManager
@@ -72,13 +70,13 @@ fun sdfsRead(file: String) {
                 """
                 sdfsRead("test_file/numberFile")
                 sdfsMap({ a: String -> a.split("\n") })
-                sdfsMap({ a: List<String> -> a.filter{it.isNotEmpty()}.map{ it.toInt() } })
-                sdfsShuffle {a:Int -> a % 10000}
-                sdfsReduce({ a: List<Int> -> a.reduce { i, j -> i + j } })
+                sdfsMap({ a: List<String> -> a.filter{it.isNotEmpty()}.map{ it.toDouble() * it.toDouble() } })
+                sdfsShuffle {a:Double -> a % 10000}
+                sdfsReduce({ a: List<Double> -> a.reduce { i, j -> i + j } })
 """
         )
 
-        var lastResult = String(Files.readAllBytes(Paths.get(file.toString()))) as Any
+        var lastResult = "1\n2\n3\n4" as Any //String(Files.readAllBytes(Paths.get(file.toString()))) as Any
         functions.forEach {
             println(it.first)
             if (it.first == "shuffle") {

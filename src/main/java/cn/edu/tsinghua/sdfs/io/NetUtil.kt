@@ -23,7 +23,7 @@ object NetUtil {
         //     return serverToChannelMap[server]!!
         // }
 
-        println("connecting to $server")
+        // println("connecting to $server")
 
         val bootstrap = Bootstrap()
 
@@ -53,7 +53,7 @@ object NetUtil {
     }
 
     fun shutdownGracefully(channel: Channel?) {
-        println("channel $channel shutdown")
+        // println("channel $channel shutdown")
         futureToGroupMap[channel]?.shutdownGracefully()
         futureToGroupMap.remove(channel)
     }
