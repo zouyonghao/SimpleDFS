@@ -105,6 +105,7 @@ class SlaveCommandHandler : ChannelInboundHandlerAdapter() {
                 packet.result = Reducer.getResult(packet.file)
                 Codec.writeAndFlushPacket(ctx.channel(), packet)
             }
+
         }
     }
 
