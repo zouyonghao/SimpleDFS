@@ -11,11 +11,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpHeaderNames.CONTENT_LENGTH
 import io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
-import org.junit.jupiter.api.Test
 
 class NettyNioTest {
 
-    @Test
+    // @Test
     fun startHttpServer() {
         ServerBootstrap().apply {
             group(NioEventLoopGroup(), NioEventLoopGroup(2))
