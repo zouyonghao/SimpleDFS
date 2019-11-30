@@ -14,7 +14,6 @@ import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
 import io.netty.handler.stream.ChunkedWriteHandler
 import io.netty.util.CharsetUtil
-import org.junit.jupiter.api.Test
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -25,7 +24,7 @@ import java.nio.file.Paths
 
 class NettyNioTest {
 
-    @Test
+    // @Test
     fun startHttpServer() {
         var first = true
         ServerBootstrap().apply {
