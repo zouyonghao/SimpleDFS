@@ -14,13 +14,18 @@ import io.netty.handler.codec.string.StringDecoder
 import io.netty.handler.codec.string.StringEncoder
 import io.netty.handler.stream.ChunkedWriteHandler
 import io.netty.util.CharsetUtil
+import org.junit.jupiter.api.Test
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousFileChannel
+import java.nio.channels.CompletionHandler
+import java.nio.file.Paths
 
 class NettyNioTest {
 
-    // @Test
+    @Test
     fun startHttpServer() {
         var first = true
         ServerBootstrap().apply {
@@ -51,10 +56,16 @@ class NettyNioTest {
                                         // readAndWrite(ctx.channel())
                                         // FileInputStream(File("")).channel.
                                         // val f = RandomAccessFile("test_file/numberFile", "rw")
+
+                                        // nio zero-copy
                                         val f = File("test_file/numberFile")
                                         ctx.channel().writeAndFlush(DefaultFileRegion(f, 0, f.length())).addListener {
                                             println("write file finished")
                                         }
+
+                                        // aio file operation
+                                        // aioTest(ctx)
+
                                         // ctx.channel().writeAndFlush(ChunkedNioFile(f.channel)).addListener {
                                         //     println("write file finished")
                                         // }
@@ -99,6 +110,26 @@ class NettyNioTest {
 
             })
         }.bind(8088).channel().closeFuture().sync()
+    }
+
+    private fun aioTest(ctx: ChannelHandlerContext) {
+        val buffer = ByteBuffer.allocate(1000_000_000)
+        var count = 0L
+        AsynchronousFileChannel.open(Paths.get("test_file/numberFile")).read<Any>(buffer, count, null, object :CompletionHandler<Int, Any> {
+            override fun completed(result: Int?, attachment: Any?) {
+                ctx.writeAndFlush("read file finished\n")
+                println(result)
+                println(buffer)
+                for ( i in 0 until result!!) {
+                    // println(buffer.get(i))
+                    ctx.writeAndFlush(buffer.get(i).toString())
+                }
+            }
+
+            override fun failed(exc: Throwable?, attachment: Any?) {
+                println("error")
+            }
+        })
     }
 
     private fun readAndWrite(channel: Channel) {
